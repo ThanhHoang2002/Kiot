@@ -1,4 +1,5 @@
 import {Flag} from 'lucide-react'
+import { Link } from 'react-router-dom';
 
 import { Button } from '../ui/button';
 
@@ -17,9 +18,11 @@ export function NotFoundPage() {
             Don&apos;t worry, our team is already on it.Please try refreshing
             the page or come back later.
           </h2>
-          <Button color="gray" className="w-full px-4 uppercase md:w-[8rem]">
-            back home
-          </Button>
+         <Link to={'/'}>
+            <Button className="w-full bg-black px-4 uppercase text-white hover:bg-black/75 md:w-[8rem]">
+              back home
+            </Button>
+         </Link>
         </div>
       </div>
   );
