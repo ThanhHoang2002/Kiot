@@ -10,7 +10,8 @@ import {
 } from 'recharts';
 
 import { MerchandiseItem, MerchandiseMetric } from '../../types/merchandise';
-import { formatCurrency } from '../../utils/revenueUtils';
+
+import formatCurrency from '@/utils/formatCurrency';
 
 interface MerchandiseChartProps {
   data: MerchandiseItem[];

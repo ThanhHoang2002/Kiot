@@ -4,9 +4,9 @@ import React from 'react';
 import { StatItem } from './StatItem';
 import { TodayStatisticsSkeleton } from './TodayStatisticsSkeleton';
 import { fetchTodayStatistics } from '../../api/statisticsApi';
-import { formatCurrency } from '../../utils/revenueUtils';
 
 import { Card } from '@/components/ui/card';
+import formatCurrency from '@/utils/formatCurrency';
 
 export const TodayStatistics: React.FC = () => {
   const { data, isLoading } = useQuery({

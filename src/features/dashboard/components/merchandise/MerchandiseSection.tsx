@@ -13,6 +13,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { Skeleton } from '@/components/ui/skeleton';
 
 const timeframeOptions = [
   { value: 'today', label: 'Hôm nay' },
@@ -37,7 +38,7 @@ export const MerchandiseSection: React.FC = () => {
   if (isLoading) {
     return (
       <Card className="p-4">
-        <div className="h-[700px] animate-pulse bg-gray-100" />
+        <Skeleton className="h-[700px]" />
       </Card>
     );
   }

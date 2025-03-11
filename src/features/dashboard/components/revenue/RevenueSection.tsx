@@ -6,10 +6,11 @@ import { RevenueChart } from './RevenueChart';
 import { RevenueTabs } from './RevenueTabs';
 import { fetchRevenueDetails } from '../../api/revenueApi';
 import { useRevenueStore } from '../../stores/revenueStore';
-import { calculateTotal, formatCurrency } from '../../utils/revenueUtils';
+import { calculateTotal } from '../../utils/revenueUtils';
 
 import { nextIcon } from '@/assets/icon';
 import { Card } from '@/components/ui/card';
+import formatCurrency from '@/utils/formatCurrency';
 
 
 export const RevenueSection: React.FC = () => {

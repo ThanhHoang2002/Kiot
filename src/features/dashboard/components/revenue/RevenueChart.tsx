@@ -12,9 +12,9 @@ import {
 
 import { fetchRevenueDetails } from '../../api/revenueApi';
 import { useRevenueStore } from '../../stores/revenueStore';
-import { formatCurrency } from '../../utils/revenueUtils';
 
 import { Skeleton } from '@/components/ui/skeleton';
+import formatCurrency from '@/utils/formatCurrency';
 
 export const RevenueChart: React.FC = () => {
   const { month, timeframe } = useRevenueStore();

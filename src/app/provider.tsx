@@ -1,23 +1,19 @@
 import { QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
-import React from 'react';
+import { Suspense } from 'react';
 
+import GlobalLoading from '@/components/loading/GlobalLoading';
 import { queryClient } from '@/lib/query-client';
 
 
 export const AppProvider = ({ children }: { children: React.ReactNode }) => {
   return (
-    <React.Suspense
-      fallback={
-        <div className="flex h-screen w-screen items-center justify-center">
-          Loading...
-        </div>
-      }
+    <Suspense fallback={<GlobalLoading/>}
     >    
           <QueryClientProvider client={queryClient}>
             {import.meta.env.DEV && <ReactQueryDevtools />}        
               {children}
           </QueryClientProvider>
-    </React.Suspense>
+    </Suspense>
   );
 };
