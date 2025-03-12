@@ -24,6 +24,7 @@ axiosClient.interceptors.response.use(
     return response;
   },
   async (error) => {
+    console.log(error)
     // const originalRequest = error.config;
     // // handle expired token
     // if (
