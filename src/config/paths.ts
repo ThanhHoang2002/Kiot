@@ -5,7 +5,6 @@ export const paths = {
     customer: '/customer',
     employee: '/employee',
     report: '/report',
-    sell: '/sell',
     setting: '/setting',
     login: '/login',
 }

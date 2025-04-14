@@ -3,7 +3,7 @@ import { useLocation, useNavigate } from "react-router-dom"
 import HeaderItem, { HeaderItemProps } from "./HeaderItem"
 import UserProfile from "./UserProfile"
 
-import { eyeIcon,boxIcon,settingIcon,customerIcon,employeeIcon,reportIcon,sellIcon,transactionIcon } from "@/assets/icon"
+import { eyeIcon,boxIcon,customerIcon,employeeIcon,sellIcon } from "@/assets/icon"
 import {paths} from "@/config/paths"
 const headerItems : HeaderItemProps[]= [
   {
@@ -18,9 +18,9 @@ const headerItems : HeaderItemProps[]= [
   }
   ,
   {
-    title: "Giao dịch",
+    title: "Bán hàng",
     link: paths.transaction,
-    icon: transactionIcon,
+    icon: sellIcon,
   },
   {
     title: "Khách hàng",
@@ -31,19 +31,6 @@ const headerItems : HeaderItemProps[]= [
     title: "Nhân viên",
     link: paths.employee,
     icon: employeeIcon,
-  },
-  {
-    title: "Báo cáo",
-    link: paths.report,
-    icon: reportIcon,
-  },{
-    title: "Bán hàng",
-    link: paths.sell,
-    icon: sellIcon,
-  },{
-    title: "Cài đặt",
-    link: paths.setting,
-    icon: settingIcon,  
   }
 ]
 

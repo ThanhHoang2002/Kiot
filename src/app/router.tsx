@@ -10,6 +10,7 @@ import { paths } from "@/config/paths";
 const Dashboard = lazy(() => import("@/app/pages/Dashboard"));
 const Products = lazy(() => import("@/app/pages/Products"));
 const LoginPage = lazy(() => import("@/app/pages/Login"));
+const TransactionPage = lazy(() => import("@/app/pages/TransactionPage"));
 export const AppRouter = () => {
   const router = createBrowserRouter([
     {
@@ -31,7 +32,7 @@ export const AppRouter = () => {
       ],
     },
     {
-      path: paths.sell,
+      path: paths.transaction,
       element: (
         <AuthGuard>
           <MainLayout header={SaleHeader} />
@@ -40,7 +41,7 @@ export const AppRouter = () => {
       children: [
         {
           path: "",
-          element: <Dashboard />,
+          element: <TransactionPage />,
         },
       ],
     },
