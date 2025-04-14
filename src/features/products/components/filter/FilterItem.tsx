@@ -41,7 +41,7 @@ const FilterItem = memo(
                 checked={selectedItem.toString() === item.value.toString()}
                 onChange={() => handleChange(item.value)}
               />
-              <TooltipProvider>
+              <TooltipProvider delayDuration={100}>
                 <Tooltip>
                   <TooltipTrigger>{item.label}</TooltipTrigger>
                   <TooltipContent>
