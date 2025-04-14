@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import React from 'react';
+import { memo } from 'react';
 
 import { StatItem } from './StatItem';
 import { TodayStatisticsSkeleton } from './TodayStatisticsSkeleton';
@@ -8,7 +8,7 @@ import { fetchTodayStatistics } from '../../api/statisticsApi';
 import { Card } from '@/components/ui/card';
 import formatCurrency from '@/utils/formatCurrency';
 
-export const TodayStatistics: React.FC = () => {
+export const TodayStatistics = memo(() => {
   const { data, isLoading } = useQuery({
     queryKey: ['statistics', 'today'],
     queryFn: fetchTodayStatistics,
@@ -46,4 +46,5 @@ export const TodayStatistics: React.FC = () => {
       </div>
     </Card>
   );
-}; 
+}); 
+TodayStatistics.displayName = 'TodayStatistics';

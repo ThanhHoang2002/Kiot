@@ -1,4 +1,5 @@
 import { FileDown, FileUp, History, Plus, Search } from 'lucide-react'
+import { memo } from 'react';
 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -37,7 +38,7 @@ interface ActionSectionProps {
   handleSearch: (value: string) => void;
 }
 
-const ActionSection = ({handleSearch}: ActionSectionProps) => {
+const ActionSection = memo(({handleSearch}: ActionSectionProps) => {
   const { searchTerm, setSearchTerm } = useDebounceSearch(handleSearch, {
     delay: 500,
   });
@@ -47,8 +48,8 @@ const ActionSection = ({handleSearch}: ActionSectionProps) => {
       <div className="relative max-w-sm flex-1">
         <Search className="absolute left-2 top-2.5 h-4 w-4 text-gray-500" />
         <Input
-          placeholder="Tìm kiếm theo mã, tên hàng..."
-          className="pl-8"
+          placeholder="Tìm kiếm theo tên hàng..."
+          className="bg-white pl-8"
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
         />
@@ -68,6 +69,6 @@ const ActionSection = ({handleSearch}: ActionSectionProps) => {
       </div>
     </div>
   );
-}
-
+})
+ActionSection.displayName = 'ActionSection';
 export default ActionSection;

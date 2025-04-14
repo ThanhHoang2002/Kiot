@@ -89,6 +89,9 @@ importers:
       recharts:
         specifier: ^2.15.1
         version: 2.15.1(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
+      spring-filter-query-builder:
+        specifier: ^1.1.1
+        version: 1.1.1
       tailwind-merge:
         specifier: ^2.6.0
         version: 2.6.0
@@ -2730,6 +2733,9 @@ packages:
   split2@4.2.0:
     resolution: {integrity: sha512-UcjcJOWknrNkF6PLX83qcHM6KHgVKNkV62Y8a5uYDVv9ydGQVwAHMKqHdJje1VTWpljG0WYpCDhrCdAOYH4TWg==}
     engines: {node: '>= 10.x'}
+
+  spring-filter-query-builder@1.1.1:
+    resolution: {integrity: sha512-RePftlJOgBEAo6xZgV2JG1POzYPdnBEkGnlBCKqwg8MuNoBfqTMFi/OToL/K/i2a3Ivk7ZlztsP+To2IK5Mc/A==}
 
   string-width@4.2.3:
     resolution: {integrity: sha512-wKyQRQpjJ0sIp62ErSZdGsjMJWsap5oRNihHhu6G7JVO/9jIB6UyevL+tXuOqrng8j/cxKTWyWUwvSTriiZz/g==}
@@ -5720,6 +5726,8 @@ snapshots:
   source-map-js@1.2.1: {}
 
   split2@4.2.0: {}
+
+  spring-filter-query-builder@1.1.1: {}
 
   string-width@4.2.3:
     dependencies:

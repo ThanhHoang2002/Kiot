@@ -1,11 +1,13 @@
-import { zodResolver } from "@hookform/resolvers/zod"
-import { Loader2, Save, Trash2 } from "lucide-react"
-import { useEffect, useState } from "react"
-import { useForm } from "react-hook-form"
-import { z } from "zod"
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Loader2, Save, Trash2, Upload } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { useForm } from "react-hook-form";
 
-import { updateProduct } from "../api/productsApi"
-import { useProduct } from "../hooks/useProduct"
+import { ProductDetailError } from "./ProductDetailError";
+import { ProductDetailSkeleton } from "./ProductDetailSkeleton";
+import { updateProduct } from "../../api/productsApi";
+import { useProduct } from "../../hooks/useProduct";
+import { ProductFormValues, productSchema } from "../../schema/product.schema";
 
 import {
   AlertDialog,
@@ -16,8 +18,8 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "@/components/ui/alert-dialog"
-import { Button } from "@/components/ui/button"
+} from "@/components/ui/alert-dialog";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -25,7 +27,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog"
+} from "@/components/ui/dialog";
 import {
   Form,
   FormControl,
@@ -33,76 +35,55 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "@/components/ui/form"
-import Image from "@/components/ui/image"
-import { Input } from "@/components/ui/input"
+} from "@/components/ui/form";
+import Image from "@/components/ui/image";
+import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select"
-import { Skeleton } from "@/components/ui/skeleton"
-import { Textarea } from "@/components/ui/textarea"
-
-// Form validation schema
-const productSchema = z.object({
-  name: z.string().min(1, "Tên sản phẩm không được để trống"),
-  sellPrice: z.number().min(0, "Giá bán phải lớn hơn 0"),
-  costPrice: z.number().min(0, "Giá nhập phải lớn hơn 0"),
-  quantity: z.number().min(0, "Số lượng phải lớn hơn hoặc bằng 0"),
-  status: z.enum(["in_stock", "out_of_stock"]),
-  category: z.string().min(1, "Danh mục không được để trống"),
-  description: z.string().optional(),
-})
-
-type ProductFormValues = z.infer<typeof productSchema>
+} from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
+import { toast } from "@/hooks/use-toast";
+import axiosClient from "@/lib/axios";
+import { queryClient } from "@/lib/query-client";
 
 interface ProductDetailModalProps {
-  productId: string
-  isOpen: boolean
-  onClose: () => void
+  productId?: number;
+  isOpen: boolean;
+  onClose: () => void;
+  onSuccess?: () => void;
 }
 
-// Loading skeleton component
-const ProductDetailSkeleton = () => (
-  <div className="grid gap-6 py-6">
-    <div className="flex gap-8">
-      <Skeleton className="h-[300px] w-[300px] rounded-lg" />
-      <div className="flex-1 space-y-6">
-        {Array.from({ length: 4 }).map((_, index) => (
-          <div key={index} className="space-y-2">
-            <Skeleton className="h-4 w-20" />
-            <Skeleton className="h-10 w-full" />
-          </div>
-        ))}
-      </div>
-    </div>
-  </div>
-)
-
-const ProductDetailError = () => (
-  <div className="py-8 text-center">
-    <div className="mb-2 text-lg text-gray-500">
-      Không tìm thấy thông tin sản phẩm
-    </div>
-    <div className="text-sm text-gray-400">
-      Vui lòng thử lại sau hoặc liên hệ quản trị viên
-    </div>
-  </div>
-)
+// This would normally be in the productsApi.ts file
+const createProduct = async (formData: FormData) => {
+  const response = await axiosClient.post("products", formData, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+    },
+  });
+  return response.data;
+};
 
 export function ProductDetailModal({
   productId,
   isOpen,
   onClose,
+  onSuccess,
 }: ProductDetailModalProps) {
-  const { data, isLoading } = useProduct(productId)
-  const [isSaving, setIsSaving] = useState(false)
-  const [isDeleting, setIsDeleting] = useState(false)
-  const [showUnsavedDialog, setShowUnsavedDialog] = useState(false)
-  const [showDeleteDialog, setShowDeleteDialog] = useState(false)
+  const isCreateMode = productId === undefined;
+  const { get, deletes } = useProduct(productId || 0);
+  const { data, isLoading, isError } = get;
+  const [isSaving, setIsSaving] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [showUnsavedDialog, setShowUnsavedDialog] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [imageFile, setImageFile] = useState<File | null>(null);
+
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const form = useForm<ProductFormValues>({
     resolver: zodResolver(productSchema),
@@ -111,60 +92,172 @@ export function ProductDetailModal({
       sellPrice: 0,
       costPrice: 0,
       quantity: 0,
-      status: "in_stock",
+      status: "Còn hàng",
       category: "",
       description: "",
     },
-  })
+  });
 
-  // Cập nhật form khi data thay đổi
+  // Load product data when editing an existing product
   useEffect(() => {
-    if (data) {
-      form.reset(data)
+    if (!isOpen) return;
+
+    if (data && !isCreateMode) {
+      form.reset({
+        name: data.name,
+        sellPrice: data.sellPrice,
+        costPrice: data.buyPrice, // Assuming buyPrice maps to costPrice
+        quantity: data.quantity,
+        status: data.status,
+        category: data.category?.id?.toString() || "",
+        description: data.description,
+      });
+      setImagePreview(data.image);
+    } else if (isCreateMode) {
+      // Reset form for create mode
+      form.reset({
+        name: "",
+        sellPrice: 0,
+        costPrice: 0,
+        quantity: 0,
+        status: "Còn hàng",
+        category: "",
+        description: "",
+      });
+      setImagePreview(null);
+      setImageFile(null);
     }
-  }, [data, form])
+  }, [data, isCreateMode, form, isOpen]);
 
   const handleClose = () => {
     if (form.formState.isDirty) {
-      setShowUnsavedDialog(true)
+      setShowUnsavedDialog(true);
     } else {
-      onClose()
+      onClose();
     }
-  }
+  };
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      // Store the file for later upload
+      setImageFile(file);
+
+      // Create a preview URL
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
   const handleSave = async (values: ProductFormValues) => {
     try {
-      setIsSaving(true)
-      await updateProduct(productId, values)
-      onClose()
-    } catch (error) {
-      console.error("Failed to save product:", error)
-    } finally {
-      setIsSaving(false)
-    }
-  }
+      setIsSaving(true);
 
-  const handleDelete = async () => {
-    try {
-      setIsDeleting(true)
-      // TODO: Implement delete API call
-      await new Promise(resolve => setTimeout(resolve, 1000))
-      onClose()
+      // Create FormData for image upload
+      const formData = new FormData();
+      Object.entries(values).forEach(([key, value]) => {
+        if (value !== undefined && value !== null) {
+          formData.append(key, value.toString());
+        }
+      });
+
+      // Add image file if it exists
+      if (imageFile) {
+        formData.append("image", imageFile);
+      }
+
+      if (isCreateMode) {
+        // Create new product
+        await createProduct(formData);
+        toast({
+          title: "Thêm sản phẩm thành công",
+          description: "Sản phẩm mới đã được thêm vào hệ thống",
+        });
+      } else if (productId) {
+        // Update existing product - In a real app, this should also use FormData
+        // Just showing different approaches based on what might be in the actual API
+        const productData = {
+          ...values,
+          id: productId,
+        };
+        await updateProduct(productId.toString(), productData);
+        toast({
+          title: "Cập nhật sản phẩm thành công",
+          description: "Thông tin sản phẩm đã được cập nhật",
+        });
+      }
+
+      // Call success callback if provided
+      if (onSuccess) {
+        onSuccess();
+      }
+
+      onClose();
     } catch (error) {
-      console.error("Failed to delete product:", error)
+      toast({
+        title: "Lưu sản phẩm thất bại",
+        description: "Đã xảy ra lỗi khi lưu sản phẩm, vui lòng thử lại",
+        variant: "destructive",
+      });
+      console.error("Failed to save product:", error);
     } finally {
-      setIsDeleting(false)
-      setShowDeleteDialog(false)
+      setIsSaving(false);
     }
-  }
+  };
+
+  const handleDelete = () => {
+    if (!productId) return;
+
+    // Set deleting state
+    setIsDeleting(true);
+
+    // Delete the product using the mutation from useProduct hook
+    deletes.mutate(productId, {
+      onSuccess: () => {
+        // Show success toast
+        toast({
+          title: "Xóa sản phẩm thành công",
+          description: "Sản phẩm đã được xóa khỏi hệ thống",
+          className: "bg-green-500 text-white",
+        });
+        // Call success callback if provided
+        if (onSuccess) {
+          onSuccess();
+        }
+
+        // Close dialogs
+        setIsDeleting(false);
+        setShowDeleteDialog(false);
+        onClose();
+        queryClient.invalidateQueries({ queryKey: ["products",{}] });
+      },
+      onError: () => {
+        // Show error toast
+        toast({
+          title: "Xóa sản phẩm thất bại",
+          description: "Đã xảy ra lỗi khi xóa sản phẩm, vui lòng thử lại",
+          variant: "destructive",
+        }); // Reset state
+        setIsDeleting(false);
+        setShowDeleteDialog(false);
+      },
+    });
+  };
+
+  const handleClickChangeImage = () => {
+    fileInputRef.current?.click();
+  };
 
   const renderContent = () => {
-    if (isLoading) {
-      return <ProductDetailSkeleton />
+    if (isLoading && !isCreateMode) {
+      return <ProductDetailSkeleton />;
     }
 
-    if (!data) {
-      return <ProductDetailError />
+    if (isError && !isCreateMode) {
+      return <ProductDetailError />;
     }
 
     return (
@@ -172,26 +265,40 @@ export function ProductDetailModal({
         <form onSubmit={form.handleSubmit(handleSave)} className="space-y-6">
           <div className="grid gap-6">
             <div className="grid grid-cols-[300px_1fr] gap-8">
-              {/* Phần ảnh sản phẩm */}
+              {/* Product image section */}
               <div className="space-y-4">
                 <div className="relative h-[300px] w-[300px] rounded-lg border">
-                  <Image
-                    src='https://pizzahut.vn/_next/image?url=https%3A%2F%2Fcdn.pizzahut.vn%2Fimages%2FWeb_V3%2FProducts_MenuTool%2FHA536%40%40Chicken_Gochujang_6pcs.webp&w=640&q=100'
-                    alt={data.name}
-                    containerClassName="h-full w-full rounded-lg"
-                  />
+                  {imagePreview ? (
+                    <Image
+                      src={imagePreview}
+                      alt="Product preview"
+                      containerClassName="h-full w-full rounded-lg"
+                    />
+                  ) : (
+                    <div className="flex h-full w-full items-center justify-center rounded-lg bg-muted">
+                      <Upload className="h-12 w-12 text-muted-foreground" />
+                    </div>
+                  )}
                   <Button
+                    type="button"
                     variant="secondary"
                     className="absolute bottom-2 right-2"
                     size="sm"
+                    onClick={handleClickChangeImage}
                   >
                     Thay đổi ảnh
                   </Button>
+                  <input
+                    type="file"
+                    ref={fileInputRef}
+                    className="hidden"
+                    accept="image/*"
+                    onChange={handleImageChange}
+                  />
                 </div>
-               
               </div>
 
-              {/* Phần thông tin chính */}
+              {/* Main information section */}
               <div className="grid grid-cols-2 content-start gap-x-8 gap-y-4">
                 <div className="">
                   <FormField
@@ -199,7 +306,9 @@ export function ProductDetailModal({
                     name="name"
                     render={({ field }) => (
                       <FormItem className="space-y-2">
-                        <FormLabel className="text-base">Tên sản phẩm</FormLabel>
+                        <FormLabel className="text-base">
+                          Tên sản phẩm
+                        </FormLabel>
                         <FormControl>
                           <Input {...field} className="text-base" />
                         </FormControl>
@@ -219,7 +328,9 @@ export function ProductDetailModal({
                         <Input
                           type="number"
                           {...field}
-                          onChange={(e) => field.onChange(Number(e.target.value))}
+                          onChange={(e) =>
+                            field.onChange(Number(e.target.value))
+                          }
                           className="text-base"
                         />
                       </FormControl>
@@ -238,7 +349,9 @@ export function ProductDetailModal({
                         <Input
                           type="number"
                           {...field}
-                          onChange={(e) => field.onChange(Number(e.target.value))}
+                          onChange={(e) =>
+                            field.onChange(Number(e.target.value))
+                          }
                           className="text-base"
                         />
                       </FormControl>
@@ -257,7 +370,9 @@ export function ProductDetailModal({
                         <Input
                           type="number"
                           {...field}
-                          onChange={(e) => field.onChange(Number(e.target.value))}
+                          onChange={(e) =>
+                            field.onChange(Number(e.target.value))
+                          }
                           className="text-base"
                         />
                       </FormControl>
@@ -282,8 +397,8 @@ export function ProductDetailModal({
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          <SelectItem value="in_stock">Đang bán</SelectItem>
-                          <SelectItem value="out_of_stock">Ngừng bán</SelectItem>
+                          <SelectItem value="Còn hàng">Đang bán</SelectItem>
+                          <SelectItem value="Hết hàng">Ngừng bán</SelectItem>
                         </SelectContent>
                       </Select>
                       <FormMessage />
@@ -329,14 +444,16 @@ export function ProductDetailModal({
 
           <DialogFooter className="flex items-center justify-between">
             <Button
-                type="button"
-                variant="outline"
-                onClick={handleClose}
-                className="gap-2"
-              >
-                Hủy
+              type="button"
+              variant="outline"
+              onClick={handleClose}
+              className="gap-2"
+            >
+              Hủy
             </Button>
-            <Button
+
+            {!isCreateMode && (
+              <Button
                 type="button"
                 variant="destructive"
                 onClick={() => setShowDeleteDialog(true)}
@@ -350,30 +467,38 @@ export function ProductDetailModal({
                 )}
                 Xóa sản phẩm
               </Button>
-              <Button type="submit" disabled={isSaving} className="gap-2">
-                {isSaving ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <Save className="h-4 w-4" />
-                )}
-                Lưu thay đổi
-              </Button>
+            )}
+
+            <Button type="submit" disabled={isSaving} className="gap-2">
+              {isSaving ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Save className="h-4 w-4" />
+              )}
+              {isCreateMode ? "Thêm sản phẩm" : "Lưu thay đổi"}
+            </Button>
           </DialogFooter>
         </form>
       </Form>
-    )
-  }
+    );
+  };
+
   return (
     <>
       <Dialog open={isOpen} onOpenChange={handleClose}>
         <DialogContent className="h-[90vh] overflow-y-auto sm:max-w-[1100px]">
           <DialogHeader>
-            <DialogTitle className="text-xl">Chi tiết sản phẩm {data?.name}</DialogTitle>
+            <DialogTitle className="text-xl">
+              {isCreateMode
+                ? "Thêm sản phẩm mới"
+                : `Chi tiết sản phẩm ${data?.name}`}
+            </DialogTitle>
             <DialogDescription />
           </DialogHeader>
           {renderContent()}
         </DialogContent>
       </Dialog>
+
       <AlertDialog open={showUnsavedDialog} onOpenChange={setShowUnsavedDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -386,8 +511,8 @@ export function ProductDetailModal({
             <AlertDialogCancel>Tiếp tục chỉnh sửa</AlertDialogCancel>
             <AlertDialogAction
               onClick={() => {
-                setShowUnsavedDialog(false)
-                onClose()
+                setShowUnsavedDialog(false);
+                onClose();
               }}
             >
               Thoát
@@ -401,7 +526,8 @@ export function ProductDetailModal({
           <AlertDialogHeader>
             <AlertDialogTitle>Xác nhận xóa sản phẩm</AlertDialogTitle>
             <AlertDialogDescription>
-              Bạn có chắc chắn muốn xóa sản phẩm này? Hành động này không thể hoàn tác.
+              Bạn có chắc chắn muốn xóa sản phẩm này? Hành động này không thể
+              hoàn tác.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -422,5 +548,5 @@ export function ProductDetailModal({
         </AlertDialogContent>
       </AlertDialog>
     </>
-  )
-} 
+  );
+}

@@ -1,15 +1,19 @@
-import { useQuery } from "@tanstack/react-query"
+import { useMutation, useQuery } from "@tanstack/react-query"
 
-import { fetchDetailsProducts } from "../api/productsApi"
+import { fetchDetailsProduct, deleteProduct, updateProduct } from "../api/productsApi"
+import { ProductFormValues } from "../schema/product.schema"
 
-export const useProduct = (id:string )=>{
-    const {data,isLoading} = useQuery({
+export const useProduct = (id:number )=>{
+    const get = useQuery({
         queryKey: ['products', id],
-        queryFn: ()=>fetchDetailsProducts(id),
+        queryFn: ()=>fetchDetailsProduct(id),
         enabled: !!id
     })
-    return {
-        data,
-        isLoading,
-    }
+    const update = useMutation({
+        mutationFn: (product:ProductFormValues)=>updateProduct(product),
+    })
+    const deletes = useMutation({
+        mutationFn: (id:number)=>deleteProduct(id),
+    })
+    return {get, update, deletes}
 }

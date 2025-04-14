@@ -7,4 +7,5 @@ export const paths = {
     report: '/report',
     sell: '/sell',
     setting: '/setting',
+    login: '/login',
 }

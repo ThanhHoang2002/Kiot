@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import React from 'react';
+import { memo } from 'react';
 
 import { MonthPicker } from './MonthPicker';
 import { RevenueChart } from './RevenueChart';
@@ -13,7 +13,7 @@ import { Card } from '@/components/ui/card';
 import formatCurrency from '@/utils/formatCurrency';
 
 
-export const RevenueSection: React.FC = () => {
+export const RevenueSection= memo(() => {
   const { month, timeframe } = useRevenueStore();
 
   const { data } = useQuery({
@@ -40,4 +40,5 @@ export const RevenueSection: React.FC = () => {
       <RevenueChart />
     </Card>
   );
-}; 
+});
+RevenueSection.displayName = 'RevenueSection'; 

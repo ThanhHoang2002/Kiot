@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import React from 'react';
+import { memo } from 'react';
 
 import { MerchandiseChart } from './MerchandiseChart';
 import { fetchMerchandiseData } from '../../api/merchandiseApi';
@@ -27,7 +27,7 @@ const metricOptions = [
   { value: 'quantity', label: 'THEO SỐ LƯỢNG' },
 ];
 
-export const MerchandiseSection: React.FC = () => {
+export const MerchandiseSection= memo(() => {
   const { timeframe, metric, setTimeframe, setMetric } = useMerchandiseStore();
 
   const { data, isLoading } = useQuery({
@@ -79,4 +79,5 @@ export const MerchandiseSection: React.FC = () => {
       <MerchandiseChart data={data.items} metric={data.metric} />
     </Card>
   );
-}; 
+}); 
+MerchandiseSection.displayName = 'MerchandiseSection';
