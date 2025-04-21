@@ -4,7 +4,6 @@ import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import AuthGuard from "@/components/auth/AuthGuard";
 import NotFoundPage from "@/components/errors/NotFoundPage";
 import HomeHeader from "@/components/layout/main-layout/header/HomeHeader";
-import SaleHeader from "@/components/layout/main-layout/header/SaleHeader";
 import MainLayout from "@/components/layout/main-layout/MainLayout";
 import { paths } from "@/config/paths";
 const Dashboard = lazy(() => import("@/app/pages/Dashboard"));
@@ -29,18 +28,8 @@ export const AppRouter = () => {
           path: paths.products,
           element: <Products />,
         },
-      ],
-    },
-    {
-      path: paths.transaction,
-      element: (
-        <AuthGuard>
-          <MainLayout header={SaleHeader} />
-        </AuthGuard>
-      ),
-      children: [
         {
-          path: "",
+          path: paths.transaction,
           element: <TransactionPage />,
         },
       ],
