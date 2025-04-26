@@ -1,5 +1,5 @@
 import { ImageOff, Search } from 'lucide-react';
-import { ChangeEvent, useCallback, useEffect, useState } from 'react';
+import { ChangeEvent, useCallback, useEffect, useRef, useState } from 'react';
 
 import { useDebounce } from '../hooks/useDebounce';
 import { useProductSearch } from '../hooks/useProductSearch';
@@ -12,10 +12,18 @@ import { Product } from '@/features/products/types/product';
 
 export const ProductSearch = () => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLUListElement>(null);
   const { searchKeyword, setSearchKeyword, addProductToTransaction } = useTransactionStore();
   
   const debouncedSearchTerm = useDebounce(searchKeyword, 300);
-  const { data, isLoading, error } = useProductSearch(debouncedSearchTerm);
+  const { 
+    data,
+    isLoading, 
+    error,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage
+  } = useProductSearch(debouncedSearchTerm);
   
   const handleSearchChange = useCallback((e: ChangeEvent<HTMLInputElement>) => {
     setSearchKeyword(e.target.value);
@@ -35,13 +43,27 @@ export const ProductSearch = () => {
     return () => document.removeEventListener('click', handleClickOutside);
   }, []);
   
+  // Handle scroll event for infinite loading
+  const handleScroll = useCallback(() => {
+    if (!dropdownRef.current) return;
+    
+    const { scrollTop, scrollHeight, clientHeight } = dropdownRef.current;
+    // Khi người dùng scroll đến gần cuối danh sách (còn cách 20px)
+    if (scrollTop + clientHeight >= scrollHeight - 20 && !isFetchingNextPage && hasNextPage) {
+      fetchNextPage();
+    }
+  }, [fetchNextPage, hasNextPage, isFetchingNextPage]);
+  
   // Open dropdown when results are available
   useEffect(() => {
-    const hasResults = data?.data && data.data.result.length > 0;
+    const hasResults = data?.pages[0]?.data && data.pages[0].data.result.length > 0;
     if (hasResults && searchKeyword) {
       setIsDropdownOpen(true);
     }
   }, [data, searchKeyword]);
+  
+  // Tổng hợp tất cả sản phẩm từ tất cả các trang
+  const allProducts = data?.pages.flatMap(page => page.data.result) || [];
   
   return (
     <div className="relative w-full">
@@ -56,7 +78,7 @@ export const ProductSearch = () => {
             onChange={handleSearchChange}
             onClick={(e) => {
               e.stopPropagation();
-              const hasResults = data?.data && data.data.result.length > 0;
+              const hasResults = data?.pages[0]?.data && data.pages[0].data.result.length > 0;
               if (hasResults) {
                 setIsDropdownOpen(true);
               }
@@ -69,15 +91,19 @@ export const ProductSearch = () => {
       
       {isDropdownOpen && (
         <div className="absolute z-50 mt-1 w-full rounded-md border border-gray-200 bg-white shadow-lg">
-          {isLoading ? (
+          {isLoading && !data ? (
             <div className="p-4 text-center text-gray-500">Đang tìm kiếm...</div>
           ) : error ? (
             <div className="p-4 text-center text-red-500">Có lỗi xảy ra khi tìm kiếm</div>
-          ) : !data?.data || data.data.result.length === 0 ? (
+          ) : !allProducts.length ? (
             <div className="p-4 text-center text-gray-500">Không tìm thấy sản phẩm</div>
           ) : (
-            <ul className="max-h-64 overflow-auto py-2">
-              {data.data.result.map((product: Product) => (
+            <ul 
+              className="max-h-64 overflow-auto py-2"
+              ref={dropdownRef}
+              onScroll={handleScroll}
+            >
+              {allProducts.map((product: Product) => (
                 <li
                   key={product.id}
                   className="cursor-pointer px-4 py-2 hover:bg-gray-100"
@@ -140,6 +166,12 @@ export const ProductSearch = () => {
                   </div>
                 </li>
               ))}
+              
+              {isFetchingNextPage && (
+                <li className="px-4 py-2 text-center text-sm text-gray-500">
+                  Đang tải thêm sản phẩm...
+                </li>
+              )}
             </ul>
           )}
         </div>

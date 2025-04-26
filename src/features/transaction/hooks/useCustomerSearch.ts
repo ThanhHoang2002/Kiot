@@ -1,25 +1,31 @@
-import { useQuery } from '@tanstack/react-query';
+import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 
 import { getCustomerByPhone, searchCustomers } from '../api/transactionApi';
-import { CustomersSearchResponse } from '../types';
+import { CustomerApiResponse } from '../types';
 
 /**
  * Hook for searching customers by keyword
  * @param keyword The search keyword
- * @returns Query result with customers data
+ * @returns InfiniteQuery result with customers data
  */
 export const useCustomerSearch = (keyword: string) => {
-  return useQuery<CustomersSearchResponse, Error>({
-    queryKey: ['customers', 'search', keyword],
-    queryFn: () => searchCustomers({ keyword, limit: 5 }),
+  return useInfiniteQuery<CustomerApiResponse, Error>({
+    queryKey: ['customers', keyword],
+    queryFn: ({ pageParam }) => 
+      searchCustomers({ 
+        keyword, 
+        page: pageParam as number, 
+        limit: 10 
+      }),
+    initialPageParam: 1,
+    getNextPageParam: (lastPage) => {
+      if (!lastPage?.data?.meta) return undefined;
+      
+      const { page, pages } = lastPage.data.meta;
+      return page < pages ? page + 1 : undefined;
+    },
     enabled: keyword.trim().length > 0,
     staleTime: 1000 * 60 * 5, // 5 minutes
-    placeholderData: {
-      data: [],
-      total: 0,
-      page: 1,
-      limit: 5,
-    },
   });
 };
 

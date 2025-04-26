@@ -1,18 +1,33 @@
-import { useQuery } from '@tanstack/react-query';
+import { useInfiniteQuery } from '@tanstack/react-query';
 
 import { searchProducts } from '../api/transactionApi';
 
 import { ProductsResponse } from '@/features/products/types/product';
 import { ApiResponse } from '@/types/apiResponse.type';
+
 /**
- * Hook for searching products
+ * Hook for searching products with infinite scrolling
  * @param keyword The search keyword
- * @returns Query result with products data
+ * @returns Infinite query result with products data
  */
 export const useProductSearch = (keyword: string) => {
-  return useQuery<ApiResponse<ProductsResponse>, Error>({
+  return useInfiniteQuery<ApiResponse<ProductsResponse>, Error>({
     queryKey: ['products', keyword],
-    queryFn: () => searchProducts({ keyword, page: 1, limit: 10 }),
+    queryFn: ({ pageParam }) => {
+      const page = pageParam as number ?? 1;
+      return searchProducts({ 
+        keyword, 
+        page, 
+        limit: 10 
+      });
+    },
+    initialPageParam: 1,
+    getNextPageParam: (lastPage, allPages) => {
+      // Kiểm tra xem có trang tiếp theo không
+      const maxPage = Math.ceil(lastPage.data.meta.total / 10);
+      const nextPage = allPages.length + 1;
+      return nextPage <= maxPage ? nextPage : undefined;
+    },
     enabled: keyword.trim().length > 0,
     staleTime: 1000 * 60 * 5, // 5 minutes
   });

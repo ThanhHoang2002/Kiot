@@ -143,3 +143,97 @@ To enforce this, you can use ESLint:
 
 By following these practices, you can ensure that your codebase is well-organized, scalable, and maintainable. This will help you and your team to work more efficiently and effectively on the project.
 This approach can also make it easier to apply similar architecture to apps built with Next.js, Remix or React Native.
+
+# Toast Notification System Guide
+
+This application uses a custom toast notification system built on top of Radix UI's Toast primitive components.
+
+## How to Use Toast Notifications
+
+### 1. Importing the Toast Function
+
+Import the `toast` function from the hooks directory:
+
+```tsx
+import { toast } from "@/hooks/use-toast";
+```
+
+### 2. Basic Usage
+
+```tsx
+// Display a simple toast
+toast({
+  title: "Success!",
+  description: "The operation was completed successfully."
+})
+
+// Display a destructive/error toast
+toast({
+  variant: "destructive",
+  title: "Error!",
+  description: "Something went wrong. Please try again."
+})
+```
+
+### 3. Advanced Usage with Actions
+
+```tsx
+toast({
+  title: "Confirm Action",
+  description: "Do you want to proceed?",
+  action: (
+    <Button 
+      variant="outline" 
+      size="sm" 
+      onClick={() => handleConfirmation()}
+    >
+      Confirm
+    </Button>
+  ),
+})
+```
+
+### 4. Dismissing Toasts Programmatically
+
+```tsx
+const { dismiss } = toast({
+  title: "Processing...",
+  description: "Your request is being processed."
+})
+
+// Later, dismiss the toast
+dismiss()
+```
+
+### 5. Updating Existing Toasts
+
+```tsx
+const { id, update } = toast({
+  title: "Loading...",
+  description: "Please wait while we process your request."
+})
+
+// Later, update the toast
+update({
+  id,
+  title: "Completed!",
+  description: "Your request has been processed successfully."
+})
+```
+
+## Configuration
+
+- By default, the system limits to 1 toast at a time
+- Toasts remain visible for approximately 16.7 minutes (1,000,000ms) 
+- These settings can be modified in `src/hooks/use-toast.ts`
+
+## Implementation Details
+
+The toast system is composed of the following components:
+
+1. `src/hooks/use-toast.ts` - Core hook that manages toast state and provides functions
+2. `src/components/ui/toast.tsx` - UI components based on Radix UI primitives
+3. `src/components/ui/toaster.tsx` - Component that renders the active toasts
+4. `src/app/provider.tsx` - Includes the Toaster component at the application level
+
+No additional installation is required as the system is fully integrated into the application.

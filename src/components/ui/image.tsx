@@ -22,7 +22,7 @@ export const Image = ({
   return (
     <div 
       className={cn(
-        "relative overflow-hidden bg-gray-100",
+        "relative h-5 w-5 overflow-hidden bg-gray-100",
         containerClassName
       )}
     >

@@ -65,7 +65,7 @@ export const useTransactionStore = create<TransactionState>((set, get) => ({
       subtotal: 0,
       discount: 0,
       total: 0,
-      paymentMethod: 'cash',
+      paymentMethod: 'CASH',
       paymentAmount: 0,
       status: 'draft',
       createdAt: new Date(),

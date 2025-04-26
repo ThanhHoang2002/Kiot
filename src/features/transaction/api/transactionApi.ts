@@ -1,8 +1,10 @@
+import { AxiosError } from "axios";
 import { sfLike } from "spring-filter-query-builder";
 
 import {
   Customer,
-  CustomersSearchResponse,
+  CustomerApiResponse,
+  OrdersPayload,
   SearchCustomersParams,
   SearchProductsParams,
 } from "../types";
@@ -29,16 +31,18 @@ export const searchProducts = async (
 // Customer API
 export const searchCustomers = async (
   params: SearchCustomersParams
-): Promise<CustomersSearchResponse> => {
-  try {
-    const response = await axiosClient.get(`/customers/search`, {
-      params,
+): Promise<CustomerApiResponse> => {
+
+    const filter = params.keyword && sfLike("phone",params.keyword)
+    
+    const response = await axiosClient.get(`/customers`, {
+      params: {
+        filter,
+        page: params.page || 1,
+        size: params.limit || 10,
+      },
     });
     return response.data;
-  } catch (error) {
-    console.error("Error searching customers:", error);
-    throw error;
-  }
 };
 
 export const getCustomerByPhone = async (
@@ -46,4 +50,22 @@ export const getCustomerByPhone = async (
 ): Promise<Customer | null> => {
   const response = await axiosClient.get(`/customers/phone/${phone}`);
   return response.data;
+};
+
+export const processPayment = async (transaction: OrdersPayload) => {
+  try {
+    const response = await axiosClient.post('/orders', transaction);
+    return response.data;
+  } catch (error: unknown) {
+    // Handle error and extract info from response if available
+    if (error instanceof AxiosError && error.response) {
+      const { status, data } = error.response;
+      throw {
+        status,
+        message: data.error || 'Payment processing failed',
+        error: data,
+      };
+    }
+    throw new Error('Failed to process payment');
+  }
 };
