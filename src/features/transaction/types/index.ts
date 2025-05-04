@@ -93,6 +93,6 @@ export interface Item {
 }
 export interface OrdersPayload {
   paymentMethod: 'CASH'| 'TRANSFER'
-  customerId: number
+  customerId?: number
   items: Item[]
 }

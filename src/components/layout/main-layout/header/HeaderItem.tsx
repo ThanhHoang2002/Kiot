@@ -6,7 +6,7 @@ import { cn } from "@/utils/cn";
 export interface HeaderItemProps {
     title?: string;
     link?: string;
-    icon?: string;
+    icon?: string | React.ReactNode;
     isActive?: boolean;
 }
 const HeaderItem = (props : HeaderItemProps) => {
@@ -24,7 +24,13 @@ const HeaderItem = (props : HeaderItemProps) => {
     )}
         onClick={handleNavigate}
     >  
-        <img src={icon} alt="" className="mr-3 h-4" />
+        {
+            typeof icon === 'string' ? (
+                <img src={icon} alt="" className="mr-3 h-4" />
+            ) : (
+                icon
+            )
+        }
         <p className="text-white">{title}</p>
     </div>
   )

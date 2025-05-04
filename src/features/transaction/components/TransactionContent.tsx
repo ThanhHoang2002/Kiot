@@ -1,3 +1,4 @@
+import { useQueryClient } from '@tanstack/react-query';
 import { User, UserPlus } from 'lucide-react';
 import { useState } from 'react';
 
@@ -24,6 +25,7 @@ export const TransactionContent = () => {
   const [isCustomerDialogOpen, setIsCustomerDialogOpen] = useState(false);
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
+  const queryClient = useQueryClient();
   const { 
     getActiveTransaction, 
     setTransactionCustomer, 
@@ -51,22 +53,13 @@ export const TransactionContent = () => {
       });
       return;
     }
-
-    if (!transaction.customer) {
-      toast({
-        title: "Lỗi",
-        description: "Vui lòng chọn khách hàng",
-        variant: "destructive"
-      });
-      return;
-    }
     
     try {
       setIsProcessingPayment(true);
       
       // Transform transaction data to match OrdersPayload
       const orderPayload: OrdersPayload = {
-        customerId: transaction.customer.id,
+        customerId: transaction.customer?.id, 
         paymentMethod: transaction.paymentMethod,
         items: transaction.items.map(item => ({
           productId: item.productId,
@@ -78,11 +71,12 @@ export const TransactionContent = () => {
 
 
       const response = await processingPayment(orderPayload);
-      console.log(response)
       // Clear current transaction after successful payment
       if(response){
       removeTransaction(transaction.id);
       setSelectedCustomer(null)
+      queryClient.invalidateQueries({ queryKey: ['products'] });
+      queryClient.invalidateQueries({ queryKey: ['invoices'] });
       toast({
         title: "Thành công",
         description: "Đơn hàng đã được thanh toán"

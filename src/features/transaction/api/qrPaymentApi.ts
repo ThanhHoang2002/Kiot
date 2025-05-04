@@ -42,7 +42,7 @@ export const checkPaymentStatus = async (amount: number, description: string) =>
     if (!response.data || !response.data.data || !response.data.data.records || !response.data.data.records[0]) {
       return false;
     }
-    
+  
     const latestTransaction = response.data.data.records[0];
     const currentAmount = latestTransaction.amount;
     const currentDescription = latestTransaction.description;

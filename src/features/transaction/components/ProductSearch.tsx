@@ -60,7 +60,7 @@ export const ProductSearch = () => {
     if (hasResults && searchKeyword) {
       setIsDropdownOpen(true);
     }
-  }, [data, searchKeyword]);
+  }, [searchKeyword]);
   
   // Tổng hợp tất cả sản phẩm từ tất cả các trang
   const allProducts = data?.pages.flatMap(page => page.data.result) || [];

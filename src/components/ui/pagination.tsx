@@ -1,117 +1,180 @@
-import * as React from "react"
 import { ChevronLeft, ChevronRight, MoreHorizontal } from "lucide-react"
+import { useMemo } from "react"
 
-import { cn } from "@/utils/cn"
-import { ButtonProps, buttonVariants } from "@/components/ui/button"
+import { Button } from "@/components/ui/button"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 
-const Pagination = ({ className, ...props }: React.ComponentProps<"nav">) => (
-  <nav
-    role="navigation"
-    aria-label="pagination"
-    className={cn("mx-auto flex w-full justify-center", className)}
-    {...props}
-  />
-)
-Pagination.displayName = "Pagination"
+interface PaginationProps {
+  page: number
+  total: number
+  pageSize: number
+  onPageChange: (page: number) => void
+  onPageSizeChange?: (pageSize: number) => void
+  siblingCount?: number
+  showPageSizeOptions?: boolean
+  pageSizeOptions?: number[]
+}
 
-const PaginationContent = React.forwardRef<
-  HTMLUListElement,
-  React.ComponentProps<"ul">
->(({ className, ...props }, ref) => (
-  <ul
-    ref={ref}
-    className={cn("flex flex-row items-center gap-1", className)}
-    {...props}
-  />
-))
-PaginationContent.displayName = "PaginationContent"
+export const Pagination = ({
+  page,
+  total,
+  pageSize,
+  onPageChange,
+  onPageSizeChange,
+  siblingCount = 1,
+  showPageSizeOptions = true,
+  pageSizeOptions = [10, 20, 30, 50],
+}: PaginationProps) => {
+  // Calculate total pages
+  const totalPages = Math.ceil(total / pageSize)
 
-const PaginationItem = React.forwardRef<
-  HTMLLIElement,
-  React.ComponentProps<"li">
->(({ className, ...props }, ref) => (
-  <li ref={ref} className={cn("", className)} {...props} />
-))
-PaginationItem.displayName = "PaginationItem"
+  // Kiểm tra nếu không có dữ liệu
+  if (totalPages <= 0) return null
 
-type PaginationLinkProps = {
-  isActive?: boolean
-} & Pick<ButtonProps, "size"> &
-  React.ComponentProps<"a">
+  // Generate array of page numbers
+  const getPageNumbers = () => {
+    const totalPageNumbers = siblingCount * 2 + 3 // siblings + current + first + last
+    
+    // Trường hợp có ít hơn totalPageNumbers (hiển thị tất cả)
+    if (totalPages <= totalPageNumbers) {
+      return Array.from({ length: totalPages }, (_, i) => i + 1)
+    }
+    
+    const leftSiblingIndex = Math.max(page - siblingCount, 1)
+    const rightSiblingIndex = Math.min(page + siblingCount, totalPages)
+    
+    const shouldShowLeftDots = leftSiblingIndex > 2
+    const shouldShowRightDots = rightSiblingIndex < totalPages - 1
+    
+    // Hiển thị dots ở cả hai phía
+    if (shouldShowLeftDots && shouldShowRightDots) {
+      return [
+        1,
+        'DOTS_LEFT',
+        ...Array.from(
+          { length: rightSiblingIndex - leftSiblingIndex + 1 },
+          (_, i) => leftSiblingIndex + i
+        ),
+        'DOTS_RIGHT',
+        totalPages,
+      ]
+    }
+    
+    // Hiển thị dots ở bên phải
+    if (!shouldShowLeftDots && shouldShowRightDots) {
+      return [
+        ...Array.from({ length: leftSiblingIndex + siblingCount }, (_, i) => i + 1),
+        'DOTS_RIGHT',
+        totalPages,
+      ]
+    }
+    
+    // Hiển thị dots ở bên trái
+    if (shouldShowLeftDots && !shouldShowRightDots) {
+      return [
+        1,
+        'DOTS_LEFT',
+        ...Array.from(
+          { length: totalPages - rightSiblingIndex + siblingCount },
+          (_, i) => totalPages - i
+        ).reverse(),
+      ]
+    }
+    
+    return Array.from({ length: totalPages }, (_, i) => i + 1)
+  }
 
-const PaginationLink = ({
-  className,
-  isActive,
-  size = "icon",
-  ...props
-}: PaginationLinkProps) => (
-  <a
-    aria-current={isActive ? "page" : undefined}
-    className={cn(
-      buttonVariants({
-        variant: isActive ? "outline" : "ghost",
-        size,
-      }),
-      className
-    )}
-    {...props}
-  />
-)
-PaginationLink.displayName = "PaginationLink"
+  const pageNumbers = getPageNumbers()
 
-const PaginationPrevious = ({
-  className,
-  ...props
-}: React.ComponentProps<typeof PaginationLink>) => (
-  <PaginationLink
-    aria-label="Go to previous page"
-    size="default"
-    className={cn("gap-1 pl-2.5", className)}
-    {...props}
-  >
-    <ChevronLeft className="h-4 w-4" />
-    <span>Previous</span>
-  </PaginationLink>
-)
-PaginationPrevious.displayName = "PaginationPrevious"
+  // Tạo pagination UI với useMemo để tối ưu hiệu suất
+  const paginationUI = useMemo(() => {
+    return (
+      <div className="flex items-center gap-2">
+        {/* Page size selector */}
+        {showPageSizeOptions && onPageSizeChange && (
+          <div className="mr-4 flex items-center gap-2">
+            <span className="text-sm text-muted-foreground">Hiển thị:</span>
+            <Select
+              value={pageSize.toString()}
+              onValueChange={(value) => onPageSizeChange(Number(value))}
+            >
+              <SelectTrigger className="h-8 w-[70px]">
+                <SelectValue placeholder={pageSize} />
+              </SelectTrigger>
+              <SelectContent>
+                {pageSizeOptions.map((size) => (
+                  <SelectItem key={size} value={size.toString()}>
+                    {size}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        )}
 
-const PaginationNext = ({
-  className,
-  ...props
-}: React.ComponentProps<typeof PaginationLink>) => (
-  <PaginationLink
-    aria-label="Go to next page"
-    size="default"
-    className={cn("gap-1 pr-2.5", className)}
-    {...props}
-  >
-    <span>Next</span>
-    <ChevronRight className="h-4 w-4" />
-  </PaginationLink>
-)
-PaginationNext.displayName = "PaginationNext"
+        {/* Previous page button */}
+        <Button
+          variant="outline"
+          size="icon"
+          className="h-8 w-8"
+          onClick={() => onPageChange(page - 1)}
+          disabled={page === 1}
+        >
+          <ChevronLeft className="h-4 w-4" />
+          <span className="sr-only">Trang trước</span>
+        </Button>
 
-const PaginationEllipsis = ({
-  className,
-  ...props
-}: React.ComponentProps<"span">) => (
-  <span
-    aria-hidden
-    className={cn("flex h-9 w-9 items-center justify-center", className)}
-    {...props}
-  >
-    <MoreHorizontal className="h-4 w-4" />
-    <span className="sr-only">More pages</span>
-  </span>
-)
-PaginationEllipsis.displayName = "PaginationEllipsis"
+        {/* Page buttons */}
+        {pageNumbers.map((pageNumber, index) => {
+          if (pageNumber === "DOTS_LEFT" || pageNumber === "DOTS_RIGHT") {
+            return (
+              <span key={`dots-${index}`} className="flex h-8 w-8 items-center justify-center">
+                <MoreHorizontal className="h-4 w-4 text-muted-foreground" />
+              </span>
+            )
+          }
 
-export {
-  Pagination,
-  PaginationContent,
-  PaginationLink,
-  PaginationItem,
-  PaginationPrevious,
-  PaginationNext,
-  PaginationEllipsis,
+          const pNum = pageNumber as number
+          return (
+            <Button
+              key={pNum}
+              variant={page === pNum ? "default" : "outline"}
+              size="icon"
+              className="h-8 w-8"
+              onClick={() => onPageChange(pNum)}
+            >
+              {pNum}
+            </Button>
+          )
+        })}
+
+        {/* Next page button */}
+        <Button
+          variant="outline"
+          size="icon"
+          className="h-8 w-8"
+          onClick={() => onPageChange(page + 1)}
+          disabled={page === totalPages}
+        >
+          <ChevronRight className="h-4 w-4" />
+          <span className="sr-only">Trang sau</span>
+        </Button>
+        
+        {/* Total records display */}
+        <div className="ml-4">
+          <span className="text-sm text-muted-foreground">
+            Tổng: {total} bản ghi
+          </span>
+        </div>
+      </div>
+    )
+  }, [page, pageSize, total, totalPages, pageNumbers, onPageChange, onPageSizeChange, showPageSizeOptions, pageSizeOptions])
+
+  return paginationUI
 }
