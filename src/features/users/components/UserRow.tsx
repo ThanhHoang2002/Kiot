@@ -44,6 +44,24 @@ const UserRow = memo(({
     </td>
     <td className="whitespace-nowrap px-4 py-4">{user.username}</td>
     <td className="whitespace-nowrap px-4 py-4">
+      {user.email ? (
+        <a href={`mailto:${user.email}`} className="text-blue-600 hover:underline">
+          {user.email}
+        </a>
+      ) : (
+        <span className="text-muted-foreground">--</span>
+      )}
+    </td>
+    <td className="whitespace-nowrap px-4 py-4">
+      {user.phoneNumber ? (
+        <a href={`tel:${user.phoneNumber}`} className="text-blue-600 hover:underline">
+          {user.phoneNumber}
+        </a>
+      ) : (
+        <span className="text-muted-foreground">--</span>
+      )}
+    </td>
+    <td className="whitespace-nowrap px-4 py-4">
       <UserRoleBadge role={user.role.name} />
     </td>
     <td className="whitespace-nowrap px-4 py-4">

@@ -22,17 +22,18 @@ export const updateUserProfile = async (userId: number, userData: FormData | Rec
       } 
     : {};
       
-  const response = await axiosClient.patch<ApiResponse<User>>(`/users/${userId}`, userData, config);
+  const response = await axiosClient.put<ApiResponse<User>>(`/users/${userId}`, userData, config);
   return response.data;
 };
 
 /**
  * Đổi mật khẩu
  */
-export const changePassword = async (userId: number, passwordData: { 
+export const changePassword = async (passwordData: { 
   oldPassword: string, 
   newPassword: string 
+  confirmPassword: string
 }): Promise<ApiResponse<{ success: boolean }>> => {
-  const response = await axiosClient.post<ApiResponse<{ success: boolean }>>(`/users/${userId}/change-password`, passwordData);
+  const response = await axiosClient.post<ApiResponse<{ success: boolean }>>(`/change-password`, passwordData);
   return response.data;
 }; 

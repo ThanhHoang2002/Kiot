@@ -13,6 +13,8 @@ export interface User {
   name: string;
   gender: Gender;
   address: string;
+  email?: string;
+  phoneNumber?: string;
   updatedAt: string | null;
   createdAt: string;
   role: UserRole;
@@ -40,6 +42,8 @@ export interface CreateUserPayload {
   password: string;
   gender: Gender;
   address: string;
+  email?: string;
+  phoneNumber?: string;
   roleId: number;
   avatar?: string;
 }

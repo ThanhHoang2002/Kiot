@@ -147,6 +147,27 @@ const AddUserButton = ({ onCreateUser }: AddUserButtonProps) => {
               registration={register('username')}
             />
 
+            {/* Email */}
+            <FormField
+              id="email"
+              label="Email"
+              type="email"
+              placeholder="Nhập địa chỉ email"
+              error={errors.email}
+              disabled={isLoading}
+              registration={register('email')}
+            />
+
+            {/* Số điện thoại */}
+            <FormField
+              id="phoneNumber"
+              label="Số điện thoại"
+              placeholder="Nhập số điện thoại"
+              error={errors.phoneNumber}
+              disabled={isLoading}
+              registration={register('phoneNumber')}
+            />
+
             {/* Mật khẩu */}
             <FormField
               id="password"

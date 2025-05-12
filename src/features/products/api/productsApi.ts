@@ -47,11 +47,35 @@ export const fetchDetailsProduct = async (
   return response.data.data;
 };
 
-export const updateProduct = async (
-  updateData: Partial<Product>
-) => {
-  return updateData;
+export const createProduct = async (formData: FormData): Promise<Product> => {
+  const response = await axiosClient.post<ApiResponse<Product>>(
+    "products", 
+    formData,
+    {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    }
+  );
+  return response.data.data;
 };
+
+export const updateProduct = async (
+  id: string | number,
+  formData: FormData
+): Promise<Product> => {
+  const response = await axiosClient.put<ApiResponse<Product>>(
+    `products/${id}`,
+    formData,
+    {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    }
+  );
+  return response.data.data;
+};
+
 export const deleteProduct = async (id: number): Promise<void> => {
   await axiosClient.delete(`products/${id}`);
 };

@@ -7,7 +7,8 @@ export const productSchema = z.object({
     quantity: z.number().min(0, "Số lượng phải lớn hơn hoặc bằng 0"),
     status: z.string().min(1, "Trạng thái không được để trống"),
     category: z.string().min(1, "Danh mục không được để trống"),
+    supplier: z.string().optional(),
     description: z.string().optional(),
   })
   
-export  type ProductFormValues = z.infer<typeof productSchema>
+export type ProductFormValues = z.infer<typeof productSchema>

@@ -16,6 +16,7 @@ type ProfileFormData = {
 type PasswordFormData = {
   currentPassword: string;
   newPassword: string;
+  confirmPassword: string;
 };
 
 export const useUserProfile = (userId: number) => {
@@ -103,9 +104,10 @@ export const useUserProfile = (userId: number) => {
   // Mutation để đổi mật khẩu
   const changePasswordMutation = useMutation({
     mutationFn: (data: PasswordFormData) =>
-      changePassword(userId, {
+      changePassword({
         oldPassword: data.currentPassword,
         newPassword: data.newPassword,
+        confirmPassword: data.confirmPassword,
       }),
     onSuccess: () => {
       toast({

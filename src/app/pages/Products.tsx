@@ -8,7 +8,7 @@ import { ProductsResponse } from "@/features/products/types/product";
 const Products = () => {
   const { filters, updateFilters } = useProductsParams();
   const { data, isLoading } = useProducts(filters);
-  // const [selectedProductId, setSelectedProductId] = useState<number>(0);
+
   return (
     <div className="grid grid-cols-7 gap-4 px-5">
       <div className="col-span-1"><FilterSection filters={filters} updateFilters={updateFilters} /></div>

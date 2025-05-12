@@ -1,14 +1,24 @@
 import { format, parseISO } from 'date-fns';
-import { Eye } from 'lucide-react';
-import { memo } from 'react';
+import { Eye, FileText, MoreVertical } from 'lucide-react';
+import { memo, useState } from 'react';
 
+import { exportInvoicePdf } from '../api/invoice';
 import { Invoice, PaymentMethod, PaymentStatus } from '../types/invoice';
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { useToast } from '@/hooks/use-toast';
 
 type Props = {
   invoices: Invoice[];
@@ -52,11 +62,50 @@ const getPaymentStatusConfig = (status: PaymentStatus) => {
   }
 };
 
+// Helper function để tải file từ Blob
+const downloadFile = (blob: Blob, filename: string) => {
+  const url = window.URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.setAttribute('download', filename);
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  window.URL.revokeObjectURL(url);
+};
+
 // Memoized row component để tối ưu render
 const InvoiceRow = memo(({ invoice, onViewDetails }: { invoice: Invoice, onViewDetails: (id: number) => void }) => {
+  const [isExporting, setIsExporting] = useState(false);
+  const { toast } = useToast();
+
+  // Hàm xuất hóa đơn PDF
+  const handleExportPdf = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    try {
+      setIsExporting(true);
+      const blob = await exportInvoicePdf(invoice.id);
+      const filename = `hoa-don-${invoice.id}.pdf`;
+      downloadFile(blob, filename);
+      toast({
+        title: "Xuất hóa đơn thành công",
+        description: `Đã tải xuống hóa đơn ${filename}`,
+      });
+    } catch (error) {
+      console.error("Lỗi khi xuất hóa đơn PDF:", error);
+      toast({
+        title: "Xuất hóa đơn thất bại",
+        description: "Không thể xuất hóa đơn sang PDF. Vui lòng thử lại sau.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsExporting(false);
+    }
+  }
+
   return (
     <TableRow>
-      <TableCell className="font-medium">{invoice.id}</TableCell>
+      <TableCell className="pl-3 font-medium">{invoice.id}</TableCell>
       <TableCell>{formatCurrency(invoice.totalPrice)}</TableCell>
       <TableCell className="hidden md:table-cell">{getPaymentMethodLabel(invoice.paymentMethod)}</TableCell>
       <TableCell>
@@ -91,14 +140,34 @@ const InvoiceRow = memo(({ invoice, onViewDetails }: { invoice: Invoice, onViewD
         )}
       </TableCell>
       <TableCell className="hidden md:table-cell">{formatDate(invoice.createdAt)}</TableCell>
-      <TableCell className="text-right">
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={() => onViewDetails(invoice.id)}
-        >
-          <Eye className="h-4 w-4" />
-        </Button>
+      <TableCell className="pr-3 text-right">
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
+              variant="ghost"
+              size="icon"
+              disabled={isExporting}
+            >
+              {isExporting ? (
+                <Skeleton className="h-4 w-4 rounded-full" />
+              ) : (
+                <MoreVertical className="h-4 w-4" />
+              )}
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuLabel>Thao tác hóa đơn</DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={() => onViewDetails(invoice.id)}>
+              <Eye className="mr-2 h-4 w-4" />
+              <span>Xem chi tiết</span>
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={handleExportPdf}>
+              <FileText className="mr-2 h-4 w-4" />
+              <span>Xuất PDF</span>
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </TableCell>
     </TableRow>
   );
@@ -141,7 +210,7 @@ const InvoiceTable = ({ invoices, onViewDetails, isLoading }: Props) => {
           {!isLoading && `Tổng cộng ${invoices.length} hóa đơn`}
         </CardDescription>
       </CardHeader>
-      <CardContent className="p-0">
+      <CardContent className="px-0 py-4">
         <div className="overflow-x-auto">
           <Table>
             <TableHeader>
@@ -153,7 +222,7 @@ const InvoiceTable = ({ invoices, onViewDetails, isLoading }: Props) => {
                 <TableHead className="hidden lg:table-cell">Người tạo</TableHead>
                 <TableHead className="hidden lg:table-cell">Khách hàng</TableHead>
                 <TableHead className="hidden md:table-cell">Ngày tạo</TableHead>
-                <TableHead className="w-[70px] text-right">Thao tác</TableHead>
+                <TableHead className="w-[70px] truncate text-right">Thao tác</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>

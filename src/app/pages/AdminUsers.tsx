@@ -47,10 +47,10 @@ const UsersPage = () => {
     }, 300);
   };
 
-  const handleUpdateUser = async (userId: number, userData: Partial<User>) => {
+  const handleUpdateUser = async (userId: number, formData: FormData) => {
     setUpdatingUserId(userId);
     try {
-      await updateUser(userId, userData);
+      await updateUser(userId, formData);
       toast({
         title: 'Thành công',
         description: 'Đã cập nhật thông tin người dùng'
@@ -141,7 +141,7 @@ const UsersPage = () => {
           user={userToEdit}
           isOpen={isEditDialogOpen}
           onClose={handleCloseEditDialog}
-          onUpdate={(userData: Partial<User>) => handleUpdateUser(userToEdit.id, userData)}
+          onUpdate={(formData: FormData) => handleUpdateUser(userToEdit.id, formData)}
           isUpdating={updatingUserId === userToEdit.id}
         />
       )}

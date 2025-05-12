@@ -3,6 +3,12 @@ import { z } from "zod";
 const baseUserSchema = z.object({
   name: z.string().min(2, { message: 'Tên phải có ít nhất 2 ký tự' }),
   username: z.string().min(3, { message: 'Username phải có ít nhất 3 ký tự' }),
+  email: z.string().email({ message: 'Email không hợp lệ' }).optional().or(z.literal('')),
+  phoneNumber: z
+    .string()
+    .regex(/^(0|\+84)[0-9]{9,10}$/, { message: 'Số điện thoại không hợp lệ' })
+    .optional()
+    .or(z.literal('')),
   gender: z.enum(['MALE', 'FEMALE', 'OTHER'] as const, {
     errorMap: () => ({ message: 'Vui lòng chọn giới tính' })
   }),

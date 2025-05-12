@@ -31,6 +31,12 @@ const TableHeader = memo(() => (
         Username
       </th>
       <th scope="col" className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">
+        Email
+      </th>
+      <th scope="col" className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">
+        Số điện thoại
+      </th>
+      <th scope="col" className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">
         Vai trò
       </th>
       <th scope="col" className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">
@@ -61,9 +67,9 @@ const UserTable = memo(({
   if (isLoading) {
     return (
       <TableSkeleton 
-        columns={6}
+        columns={8}
         rows={10}
-        headerTitles={['Họ tên', 'Username', 'Vai trò', 'Ngày tạo', 'Giới tính', 'Thao tác']}
+        headerTitles={['Họ tên', 'Username', 'Email', 'Số điện thoại', 'Vai trò', 'Ngày tạo', 'Giới tính', 'Thao tác']}
       />
     );
   }

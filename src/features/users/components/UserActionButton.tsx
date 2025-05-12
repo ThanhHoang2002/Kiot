@@ -1,4 +1,4 @@
-import { Edit, MoreVertical, Trash } from 'lucide-react';
+import { Edit, MoreVertical } from 'lucide-react';
 import { memo, useState } from 'react';
 
 import { User } from '../types';
@@ -22,7 +22,6 @@ export const UserActionButton = memo(({
   user, 
   isUpdating,
   onEdit = () => {}, 
-  onDelete = () => {}
 }: UserActionButtonProps) => {
   const [isOpen, setIsOpen] = useState(false);
   
@@ -34,13 +33,13 @@ export const UserActionButton = memo(({
     }, 10);
   };
   
-  const handleDelete = () => {
-    setIsOpen(false); // Đóng dropdown trước
-    // Đợi một tick để đảm bảo dropdown đã đóng hoàn toàn
-    setTimeout(() => {
-      onDelete(user);
-    }, 10);
-  };
+  // const handleDelete = () => {
+  //   setIsOpen(false); // Đóng dropdown trước
+  //   // Đợi một tick để đảm bảo dropdown đã đóng hoàn toàn
+  //   setTimeout(() => {
+  //     onDelete(user);
+  //   }, 10);
+  // };
   
   return (
     <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
@@ -81,13 +80,13 @@ export const UserActionButton = memo(({
           <Edit className="mr-2 h-4 w-4" />
           Chỉnh sửa
         </DropdownMenuItem>
-        <DropdownMenuItem 
+        {/* <DropdownMenuItem 
           className="cursor-pointer text-destructive transition-colors hover:bg-destructive/10"
           onClick={handleDelete}
         >
           <Trash className="mr-2 h-4 w-4" />
           Xóa tài khoản
-        </DropdownMenuItem>
+        </DropdownMenuItem> */}
       </DropdownMenuContent>
     </DropdownMenu>
   );

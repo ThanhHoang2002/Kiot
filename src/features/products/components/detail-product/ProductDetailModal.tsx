@@ -5,9 +5,11 @@ import { useForm } from "react-hook-form";
 
 import { ProductDetailError } from "./ProductDetailError";
 import { ProductDetailSkeleton } from "./ProductDetailSkeleton";
-import { updateProduct } from "../../api/productsApi";
+import { useCategories } from "../../hooks/useCategories";
 import { useProduct } from "../../hooks/useProduct";
+import { useSuppliers } from "../../hooks/useSuppliers";
 import { ProductFormValues, productSchema } from "../../schema/product.schema";
+import { Category } from "../../types/product";
 
 import {
   AlertDialog,
@@ -47,8 +49,6 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "@/hooks/use-toast";
-import axiosClient from "@/lib/axios";
-import { queryClient } from "@/lib/query-client";
 
 interface ProductDetailModalProps {
   productId?: number;
@@ -57,16 +57,6 @@ interface ProductDetailModalProps {
   onSuccess?: () => void;
 }
 
-// This would normally be in the productsApi.ts file
-const createProduct = async (formData: FormData) => {
-  const response = await axiosClient.post("products", formData, {
-    headers: {
-      "Content-Type": "multipart/form-data",
-    },
-  });
-  return response.data;
-};
-
 export function ProductDetailModal({
   productId,
   isOpen,
@@ -74,8 +64,18 @@ export function ProductDetailModal({
   onSuccess,
 }: ProductDetailModalProps) {
   const isCreateMode = productId === undefined;
-  const { get, deletes } = useProduct(productId || 0);
+  
+  // State để kiểm soát xem sản phẩm có bị xóa không
+  const [isDeleted, setIsDeleted] = useState(false);
+  
+  // Chỉ sử dụng hook useProduct khi sản phẩm chưa bị xóa
+  const { get, create, update, deletes } = useProduct(isDeleted ? 0 : (productId || 0));
   const { data, isLoading, isError } = get;
+  
+  // Lấy danh sách danh mục và nhà cung cấp từ hooks
+  const { data: categories = [], isLoading: isCategoriesLoading } = useCategories();
+  const { data: suppliers = [], isLoading: isSuppliersLoading } = useSuppliers();
+  
   const [isSaving, setIsSaving] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [showUnsavedDialog, setShowUnsavedDialog] = useState(false);
@@ -94,6 +94,7 @@ export function ProductDetailModal({
       quantity: 0,
       status: "Còn hàng",
       category: "",
+      supplier: "",
       description: "",
     },
   });
@@ -110,6 +111,7 @@ export function ProductDetailModal({
         quantity: data.quantity,
         status: data.status,
         category: data.category?.id?.toString() || "",
+        supplier: data.supplier?.id?.toString() || "",
         description: data.description,
       });
       setImagePreview(data.image);
@@ -122,6 +124,7 @@ export function ProductDetailModal({
         quantity: 0,
         status: "Còn hàng",
         category: "",
+        supplier: "",
         description: "",
       });
       setImagePreview(null);
@@ -152,17 +155,41 @@ export function ProductDetailModal({
     }
   };
 
+  // Hàm để tìm danh mục dựa trên ID
+  const findCategoryById = (categoryId: string): Category | undefined => {
+    return categories.find(cat => cat.id.toString() === categoryId);
+  };
+
   const handleSave = async (values: ProductFormValues) => {
     try {
       setIsSaving(true);
 
-      // Create FormData for image upload
+      // Xác định category từ ID được chọn
+      const categoryObj = findCategoryById(values.category);
+
+      if (!categoryObj) {
+        toast({
+          title: "Lỗi",
+          description: "Danh mục không hợp lệ",
+          variant: "destructive",
+        });
+        setIsSaving(false);
+        return;
+      }
+
+      // Chuẩn bị FormData cho tạo mới hoặc cập nhật sản phẩm
       const formData = new FormData();
-      Object.entries(values).forEach(([key, value]) => {
-        if (value !== undefined && value !== null) {
-          formData.append(key, value.toString());
-        }
-      });
+      formData.append("name", values.name);
+      formData.append("sellPrice", values.sellPrice.toString());
+      formData.append("buyPrice", values.costPrice.toString());
+      formData.append("quantity", values.quantity.toString());
+      formData.append("status", values.status);
+      formData.append("description", values.description || "");
+      formData.append("categoryId", values.category);
+      
+      if (values.supplier) {
+        formData.append("supplierId", values.supplier);
+      }
 
       // Add image file if it exists
       if (imageFile) {
@@ -170,32 +197,56 @@ export function ProductDetailModal({
       }
 
       if (isCreateMode) {
-        // Create new product
-        await createProduct(formData);
-        toast({
-          title: "Thêm sản phẩm thành công",
-          description: "Sản phẩm mới đã được thêm vào hệ thống",
+        // Create new product using create mutation
+        await create.mutateAsync(formData, {
+          onSuccess: () => {
+            toast({
+              title: "Thêm sản phẩm thành công",
+              description: "Sản phẩm mới đã được thêm vào hệ thống",
+            });
+            
+            // Call success callback if provided
+            if (onSuccess) {
+              onSuccess();
+            }
+            
+            onClose();
+          },
+          onError: (error) => {
+            toast({
+              title: "Thêm sản phẩm thất bại",
+              description: "Đã xảy ra lỗi khi thêm sản phẩm, vui lòng thử lại",
+              variant: "destructive",
+            });
+            console.error("Failed to create product:", error);
+          }
         });
       } else if (productId) {
-        // Update existing product - In a real app, this should also use FormData
-        // Just showing different approaches based on what might be in the actual API
-        const productData = {
-          ...values,
-          id: productId,
-        };
-        await updateProduct(productId.toString(), productData);
-        toast({
-          title: "Cập nhật sản phẩm thành công",
-          description: "Thông tin sản phẩm đã được cập nhật",
+        // Update existing product using update mutation
+        await update.mutateAsync(formData, {
+          onSuccess: () => {
+            toast({
+              title: "Cập nhật sản phẩm thành công",
+              description: "Thông tin sản phẩm đã được cập nhật",
+            });
+            
+            // Call success callback if provided
+            if (onSuccess) {
+              onSuccess();
+            }
+            
+            onClose();
+          },
+          onError: (error) => {
+            toast({
+              title: "Cập nhật sản phẩm thất bại",
+              description: "Đã xảy ra lỗi khi cập nhật sản phẩm, vui lòng thử lại",
+              variant: "destructive",
+            });
+            console.error("Failed to update product:", error);
+          }
         });
       }
-
-      // Call success callback if provided
-      if (onSuccess) {
-        onSuccess();
-      }
-
-      onClose();
     } catch (error) {
       toast({
         title: "Lưu sản phẩm thất bại",
@@ -217,30 +268,37 @@ export function ProductDetailModal({
     // Delete the product using the mutation from useProduct hook
     deletes.mutate(productId, {
       onSuccess: () => {
+        // Đánh dấu sản phẩm đã bị xóa để ngăn gọi API get
+        setIsDeleted(true);
+        
         // Show success toast
         toast({
           title: "Xóa sản phẩm thành công",
           description: "Sản phẩm đã được xóa khỏi hệ thống",
           className: "bg-green-500 text-white",
         });
+        
+        // Đóng dialog trước để tránh re-fetch dữ liệu của sản phẩm đã bị xóa
+        setShowDeleteDialog(false);
+        onClose();
+        
         // Call success callback if provided
         if (onSuccess) {
           onSuccess();
         }
 
-        // Close dialogs
+        // Reset state
         setIsDeleting(false);
-        setShowDeleteDialog(false);
-        onClose();
-        queryClient.invalidateQueries({ queryKey: ["products",{}] });
       },
-      onError: () => {
+      onError: (error) => {
         // Show error toast
         toast({
           title: "Xóa sản phẩm thất bại",
           description: "Đã xảy ra lỗi khi xóa sản phẩm, vui lòng thử lại",
           variant: "destructive",
-        }); // Reset state
+        });
+        console.error("Failed to delete product:", error);
+        // Reset state
         setIsDeleting(false);
         setShowDeleteDialog(false);
       },
@@ -412,9 +470,63 @@ export function ProductDetailModal({
                   render={({ field }) => (
                     <FormItem className="space-y-2">
                       <FormLabel className="text-base">Danh mục</FormLabel>
-                      <FormControl>
-                        <Input {...field} className="text-base" />
-                      </FormControl>
+                      <Select
+                        onValueChange={(value) => {
+                          field.onChange(value);
+                        }}
+                        defaultValue={field.value}
+                      >
+                        <FormControl>
+                          <SelectTrigger className="text-base">
+                            <SelectValue placeholder="Chọn danh mục" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {isCategoriesLoading ? (
+                            <SelectItem value="" disabled>Đang tải...</SelectItem>
+                          ) : (
+                            categories.map((category) => (
+                              <SelectItem key={category.id} value={category.id.toString()}>
+                                {category.name}
+                              </SelectItem>
+                            ))
+                          )}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="supplier"
+                  render={({ field }) => (
+                    <FormItem className="space-y-2">
+                      <FormLabel className="text-base">Nhà cung cấp</FormLabel>
+                      <Select
+                        onValueChange={(value) => {
+                          field.onChange(value);
+                        }}
+                        defaultValue={field.value}
+                      >
+                        <FormControl>
+                          <SelectTrigger className="text-base">
+                            <SelectValue placeholder="Chọn nhà cung cấp" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {isSuppliersLoading ? (
+                            <SelectItem value="" disabled>Đang tải...</SelectItem>
+                          ) : (
+                            suppliers.map((supplier) => (
+                              <SelectItem key={supplier.id} value={supplier.id.toString()}>
+                                {supplier.name}
+                              </SelectItem>
+                            ))
+                          )}
+                        </SelectContent>
+                      </Select>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -458,9 +570,9 @@ export function ProductDetailModal({
                 variant="destructive"
                 onClick={() => setShowDeleteDialog(true)}
                 className="gap-2"
-                disabled={isDeleting}
+                disabled={isDeleting || deletes.isPending}
               >
-                {isDeleting ? (
+                {isDeleting || deletes.isPending ? (
                   <Loader2 className="h-4 w-4 animate-spin" />
                 ) : (
                   <Trash2 className="h-4 w-4" />
@@ -469,8 +581,12 @@ export function ProductDetailModal({
               </Button>
             )}
 
-            <Button type="submit" disabled={isSaving} className="gap-2">
-              {isSaving ? (
+            <Button 
+              type="submit" 
+              disabled={isSaving || create.isPending || update.isPending} 
+              className="gap-2"
+            >
+              {isSaving || create.isPending || update.isPending ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
               ) : (
                 <Save className="h-4 w-4" />
@@ -534,10 +650,10 @@ export function ProductDetailModal({
             <AlertDialogCancel disabled={isDeleting}>Hủy</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDelete}
-              disabled={isDeleting}
+              disabled={isDeleting || deletes.isPending}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
-              {isDeleting ? (
+              {isDeleting || deletes.isPending ? (
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               ) : (
                 <Trash2 className="mr-2 h-4 w-4" />

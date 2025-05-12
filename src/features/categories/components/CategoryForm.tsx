@@ -1,4 +1,5 @@
 import { ImageIcon, Loader2 } from "lucide-react";
+import { memo, useCallback } from "react";
 
 import { Button } from "@/components/ui/button";
 import { FormField } from "@/components/ui/form-field";
@@ -13,7 +14,30 @@ interface CategoryFormProps {
   onCancel?: () => void;
 }
 
-export const CategoryForm = ({ category, onSuccess, onCancel }: CategoryFormProps) => {
+// Memoized image preview component to prevent unnecessary re-renders
+const ImagePreview = memo(({ src }: { src: string }) => (
+  <Image
+    src={src}
+    containerClassName="h-full w-full"
+    fallback={<ImageIcon className="h-12 w-12 text-gray-400" />}
+    alt="Preview"
+    className="h-full w-full object-contain"
+  />
+));
+
+ImagePreview.displayName = 'ImagePreview';
+
+// Empty state component
+const EmptyImageState = memo(() => (
+  <div className="flex h-full w-full flex-col items-center justify-center">
+    <ImageIcon className="h-12 w-12 text-gray-400" />
+    <p className="mt-2 text-sm text-gray-500">Chưa có hình ảnh</p>
+  </div>
+));
+
+EmptyImageState.displayName = 'EmptyImageState';
+
+export const CategoryForm = memo(({ category, onSuccess, onCancel }: CategoryFormProps) => {
   // Sử dụng custom hook quản lý form
   const {
     register,
@@ -29,14 +53,14 @@ export const CategoryForm = ({ category, onSuccess, onCancel }: CategoryFormProp
     onSuccess,
   });
 
-  const handleFormSubmit = (data: CategoryFormValues) => {
+  const handleFormSubmit = useCallback((data: CategoryFormValues) => {
     onSubmit(data);
-  };
+  }, [onSubmit]);
 
-  const handleCancel = () => {
+  const handleCancel = useCallback(() => {
     resetForm();
     onCancel?.();
-  };
+  }, [resetForm, onCancel]);
 
   return (
     <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-6">
@@ -44,18 +68,9 @@ export const CategoryForm = ({ category, onSuccess, onCancel }: CategoryFormProp
       <div className="flex flex-col items-center space-y-4">
         <div className="relative h-48 w-full max-w-md overflow-hidden rounded-lg border-2 border-dashed border-gray-300 bg-gray-50">
           {imagePreview ? (
-            <Image
-              src={imagePreview}
-              containerClassName="h-full w-full"
-              fallback={<ImageIcon className="h-12 w-12 text-gray-400" />}
-              alt="Preview"
-              className="h-full w-full object-contain"
-            />
+            <ImagePreview src={imagePreview} />
           ) : (
-            <div className="flex h-full w-full flex-col items-center justify-center">
-              <ImageIcon className="h-12 w-12 text-gray-400" />
-              <p className="mt-2 text-sm text-gray-500">Chưa có hình ảnh</p>
-            </div>
+            <EmptyImageState />
           )}
         </div>
 
@@ -124,4 +139,6 @@ export const CategoryForm = ({ category, onSuccess, onCancel }: CategoryFormProp
       </div>
     </form>
   );
-}; 
+});
+
+CategoryForm.displayName = 'CategoryForm'; 

@@ -1,6 +1,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
+import { AxiosError } from "axios";
+import { useCallback, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
@@ -20,6 +21,11 @@ export type CategoryFormValues = z.infer<typeof categorySchema>;
 interface UseCategoryFormProps {
   category?: Category | null;
   onSuccess?: () => void;
+}
+
+interface ApiErrorResponse {
+  message: string;
+  status: number;
 }
 
 export const useCategoryForm = ({ category, onSuccess }: UseCategoryFormProps = {}) => {
@@ -42,6 +48,17 @@ export const useCategoryForm = ({ category, onSuccess }: UseCategoryFormProps = 
     },
   });
 
+  // Update form values when category changes
+  useEffect(() => {
+    if (category) {
+      reset({
+        name: category.name || "",
+        description: category.description || "",
+      });
+      setImagePreview(category.image || null);
+    }
+  }, [category, reset]);
+
   // Mutation để tạo mới danh mục
   const createMutation = useMutation({
     mutationFn: (data: CategoryFormValues) => {
@@ -53,6 +70,7 @@ export const useCategoryForm = ({ category, onSuccess }: UseCategoryFormProps = 
       return createCategory(payload);
     },
     onSuccess: () => {
+      // Specific invalidation instead of invalidating all categories
       queryClient.invalidateQueries({ queryKey: ["categories"] });
       toast({
         title: "Thành công",
@@ -63,11 +81,12 @@ export const useCategoryForm = ({ category, onSuccess }: UseCategoryFormProps = 
       setImagePreview(null);
       onSuccess?.();
     },
-    onError: (error) => {
+    onError: (error: AxiosError<ApiErrorResponse>) => {
+      const errorMessage = error.response?.data?.message || "Không thể thêm danh mục mới";
       console.error("Failed to create category:", error);
       toast({
         title: "Lỗi",
-        description: "Không thể thêm danh mục mới",
+        description: errorMessage,
         variant: "destructive",
       });
     },
@@ -84,57 +103,88 @@ export const useCategoryForm = ({ category, onSuccess }: UseCategoryFormProps = 
       };
       return updateCategory(category.id, payload);
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["categories"] });
+    onSuccess: (data) => {
+      // More specific query invalidation
+      queryClient.invalidateQueries({ 
+        queryKey: ["categories"]
+      });
+      // Update the specific category in the cache if needed
+      if (category) {
+        queryClient.setQueryData(
+          ["category", category.id.toString()], 
+          data
+        );
+      }
       toast({
         title: "Thành công",
         description: "Cập nhật danh mục thành công",
       });
       onSuccess?.();
     },
-    onError: (error) => {
+    onError: (error: AxiosError<ApiErrorResponse>) => {
+      const errorMessage = error.response?.data?.message || "Không thể cập nhật danh mục";
       console.error("Failed to update category:", error);
       toast({
         title: "Lỗi",
-        description: "Không thể cập nhật danh mục",
+        description: errorMessage,
         variant: "destructive",
       });
     },
   });
 
-  // Xử lý khi thay đổi hình ảnh
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  // Xử lý khi thay đổi hình ảnh - memoized
+  const handleImageChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      // Release previous preview URL to avoid memory leaks
+      if (imagePreview && !imagePreview.startsWith('http')) {
+        URL.revokeObjectURL(imagePreview);
+      }
+      
       setImageFile(file);
       // Tạo URL preview
       const previewUrl = URL.createObjectURL(file);
       setImagePreview(previewUrl);
     }
-  };
+  }, [imagePreview]);
 
   // Xử lý submit form
-  const onSubmit = (data: CategoryFormValues) => {
+  const onSubmit = useCallback((data: CategoryFormValues) => {
     if (category) {
       updateMutation.mutate(data);
     } else {
       createMutation.mutate(data);
     }
-  };
+  }, [category, createMutation, updateMutation]);
 
   // Reset form về trạng thái ban đầu
-  const resetForm = () => {
+  const resetForm = useCallback(() => {
     reset({
       name: category?.name || "",
       description: category?.description || "",
     });
+    
+    // Release any existing object URL
+    if (imagePreview && !imagePreview.startsWith('http')) {
+      URL.revokeObjectURL(imagePreview);
+    }
+    
     if (category?.image) {
       setImagePreview(category.image);
     } else {
       setImagePreview(null);
     }
     setImageFile(null);
-  };
+  }, [category, imagePreview, reset]);
+
+  // Cleanup object URLs on unmount
+  useEffect(() => {
+    return () => {
+      if (imagePreview && !imagePreview.startsWith('http')) {
+        URL.revokeObjectURL(imagePreview);
+      }
+    };
+  }, [imagePreview]);
 
   return {
     register,

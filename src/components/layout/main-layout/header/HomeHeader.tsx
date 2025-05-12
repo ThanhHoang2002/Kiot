@@ -1,4 +1,4 @@
-import { FileChartColumn, FileIcon } from "lucide-react"
+import { Factory, FileChartColumn, List, UserIcon } from "lucide-react"
 import { useLocation, useNavigate } from "react-router-dom"
 
 import HeaderItem, { HeaderItemProps } from "./HeaderItem"
@@ -29,19 +29,26 @@ const headerItems : HeaderItemProps[]= [
     icon: <FileChartColumn className="mr-2 h-5 w-5"/>,
   },
   {
-    title: "Người dùng",
-    link: paths.users,
+    title: "Khách hàng",
+    link: paths.customer,
     icon: customerIcon,
-  },{
+  },
+ {
     title: "Danh mục",
     link: paths.category,
-    icon: <FileIcon className="mr-2 h-5 w-5"/>,
+    icon: <List className="mr-2 h-5 w-5"/>,
   },
   {
     title: "Nhà cung cấp",
     link: paths.supplier,
-    icon: <FileIcon className="mr-2 h-5 w-5"/>,
-  }
+    icon: <Factory className="mr-2 h-5 w-5"/>,
+  },
+    {
+    title: "Người dùng",
+    link: paths.users,
+    icon: <UserIcon className="mr-2 h-5 w-5"/>,
+  },
+  
 ]
 
 const HomeHeader = () => {

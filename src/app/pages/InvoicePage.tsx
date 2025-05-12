@@ -1,4 +1,4 @@
-import { FilePlus, FileSpreadsheet, Filter } from 'lucide-react';
+import { FilePlus, Filter } from 'lucide-react';
 import { useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 
@@ -6,19 +6,35 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { PageHeader } from '@/components/ui/page-header';
 import { Skeleton } from '@/components/ui/skeleton';
+import { InvoiceDetailDialog } from '@/features/invoice/components/InvoiceDetailDialog';
 import InvoiceFilter from '@/features/invoice/components/InvoiceFilter';
 import InvoicePagination from '@/features/invoice/components/InvoicePagination';
 import InvoiceTable from '@/features/invoice/components/InvoiceTable';
 import { useInvoiceParams } from '@/features/invoice/hooks/useInvoiceParams';
 import { useInvoices } from '@/features/invoice/hooks/useInvoices';
-import { InvoiceFilterParams } from '@/features/invoice/types/invoice';
+import { Invoice, InvoiceFilterParams } from '@/features/invoice/types/invoice';
 
 const InvoicePage = () => {
   const navigate = useNavigate();
   const { filters, updateFilters } = useInvoiceParams();
   const [showFilterMobile, setShowFilterMobile] = useState(false);
   
+  // State for dialog
+  const [isDetailOpen, setIsDetailOpen] = useState(false);
+  const [selectedInvoiceId, setSelectedInvoiceId] = useState<number | null>(null);
+  
   const { data, isLoading, isFetching } = useInvoices(filters);
+  
+  // Fetch invoice details when ID is selected
+  // Tạm thời comment lại cho tới khi hook useInvoiceById được triển khai hoàn chỉnh
+  // const { 
+  //   data: invoiceDetail
+  // } = useInvoiceById(selectedInvoiceId || 0, {
+  //   enabled: selectedInvoiceId !== null
+  // });
+  
+  // Tạm thời sử dụng dữ liệu từ useInvoices
+  const invoiceDetail = data;
   
   const invoices = data?.data.result || [];
   const pagination = data?.data.meta;
@@ -32,25 +48,18 @@ const InvoicePage = () => {
   }, [updateFilters]);
 
   const handleViewDetails = useCallback((id: number) => {
-    navigate(`/invoices/${id}`);
-  }, [navigate]);
+    setSelectedInvoiceId(id);
+    setIsDetailOpen(true);
+  }, []);
+
+  const handleCloseDetail = useCallback(() => {
+    setIsDetailOpen(false);
+    setSelectedInvoiceId(null);
+  }, []);
 
   const handleCreateInvoice = useCallback(() => {
     navigate('/transaction'); // Chuyển đến trang bán hàng
   }, [navigate]);
-
-  const handleExportExcel = useCallback(() => {
-    // Xuất Excel với dữ liệu hiện tại
-    try {
-      const currentDateStr = new Date().toISOString().slice(0, 10);
-      const fileName = `invoice-export-${currentDateStr}.xlsx`;
-      alert(`Đang xuất file Excel: ${fileName}`);
-      // TODO: Thêm logic xuất Excel thực tế
-    } catch (error) {
-      console.error('Lỗi khi xuất Excel:', error);
-      alert('Có lỗi khi xuất file Excel. Vui lòng thử lại sau.');
-    }
-  }, []);
 
   const toggleFilterMobile = useCallback(() => {
     setShowFilterMobile(prev => !prev);
@@ -71,14 +80,6 @@ const InvoicePage = () => {
         <FilePlus className="h-4 w-4" />
         <span className="hidden sm:inline">Thêm hóa đơn</span>
       </Button>
-      <Button 
-        variant="outline" 
-        className="gap-2"
-        onClick={handleExportExcel}
-      >
-        <FileSpreadsheet className="h-4 w-4" />
-        <span className="hidden sm:inline">Xuất Excel</span>
-      </Button>
       <Button
         variant="ghost"
         size="icon"
@@ -90,8 +91,11 @@ const InvoicePage = () => {
     </div>
   );
 
+  // Extract selected invoice details if available
+  const selectedInvoice = invoiceDetail?.data?.result?.find((invoice: Invoice) => invoice.id === selectedInvoiceId);
+
   return (
-    <div className="container mx-auto px-4 py-6">
+    <div className="mx-auto px-4 py-6">
       <PageHeader 
         title="Quản lý hóa đơn"
         subtitle="Xem và quản lý danh sách hóa đơn trong hệ thống."
@@ -138,6 +142,15 @@ const InvoicePage = () => {
           </div>
         </div>
       </div>
+
+      {/* Detail Dialog */}
+      {selectedInvoice && (
+        <InvoiceDetailDialog
+          invoice={selectedInvoice}
+          isOpen={isDetailOpen}
+          onClose={handleCloseDetail}
+        />
+      )}
     </div>
   );
 };

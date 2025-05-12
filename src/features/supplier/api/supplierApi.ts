@@ -101,13 +101,14 @@ export const updateSupplier = async (id: number, supplierData: UpdateSupplierPay
   
   if (supplierData.description) {
     formData.append("description", supplierData.description);
+    
   }
   
   if (supplierData.image) {
     formData.append("image", supplierData.image);
   }
 
-  const response = await axiosClient.patch<ApiResponse<Supplier>>(`${BASE_PATH}/${id}`, formData, {
+  const response = await axiosClient.put<ApiResponse<Supplier>>(`${BASE_PATH}/${id}`, formData, {
     headers: {
       "Content-Type": "multipart/form-data",
     },

@@ -16,6 +16,7 @@ const InvoicePage = lazy(() => import("@/app/pages/InvoicePage"));
 const AdminProfile = lazy(() => import("@/app/pages/AdminProfile"));
 const CategoryPage = lazy(() => import("@/app/pages/CategoryPage"));
 const Supplier = lazy(() => import("@/app/pages/Supplier"));
+const CustomerPage = lazy(() => import("@/app/pages/CustomerPage"));
 export const AppRouter = () => {
   const router = createBrowserRouter([
     {
@@ -57,6 +58,10 @@ export const AppRouter = () => {
         {
           path: paths.adminProfile,
           element: <AdminProfile />,
+        },
+        {
+          path: paths.customer,
+          element: <CustomerPage />,
         },
       ],
     },

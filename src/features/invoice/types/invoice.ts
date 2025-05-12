@@ -35,6 +35,16 @@ export interface Customer {
   active: boolean;
 }
 
+export interface InvoiceItem {
+  id: number;
+  productId: number;
+  name: string;
+  quantity: number;
+  price: number;
+  total: number;
+  image?: string;
+}
+
 export interface Invoice {
   id: number;
   totalPrice: number;
@@ -49,6 +59,7 @@ export interface Invoice {
   updatedBy: string | null;
   user: User;
   customer: Customer | null;
+  items?: InvoiceItem[];
 }
 
 export interface InvoicePagination {

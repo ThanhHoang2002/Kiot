@@ -1,6 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Loader2 } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
@@ -16,11 +16,18 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { FormField } from '@/components/ui/form-field';
+import { Input } from '@/components/ui/input';
 
 // Định nghĩa schema cho form chỉnh sửa
 const editUserSchema = z.object({
   name: z.string().min(2, { message: 'Tên phải có ít nhất 2 ký tự' }),
   username: z.string().min(3, { message: 'Username phải có ít nhất 3 ký tự' }),
+  email: z.string().email({ message: 'Email không hợp lệ' }).optional().or(z.literal('')),
+  phoneNumber: z
+    .string()
+    .regex(/^(0|\+84)[0-9]{9,10}$/, { message: 'Số điện thoại không hợp lệ' })
+    .optional()
+    .or(z.literal('')),
   gender: z.enum(['MALE', 'FEMALE', 'OTHER'], {
     errorMap: () => ({ message: 'Vui lòng chọn giới tính' })
   }),
@@ -37,13 +44,15 @@ interface EditUserDialogProps {
   user: User;
   isOpen: boolean;
   onClose: () => void;
-  onUpdate: (data: Partial<User>) => Promise<void>;
+  onUpdate: (data: FormData) => Promise<void>;
   isUpdating: boolean;
 }
 
 const EditUserDialog = ({ user, isOpen, onClose, onUpdate, isUpdating }: EditUserDialogProps) => {
   // Local state để kiểm soát việc hiển thị dialog
   const [internalOpen, setInternalOpen] = useState(false);
+  const [avatarFile, setAvatarFile] = useState<File | null>(null);
+  const [avatarPreview, setAvatarPreview] = useState<string | null>(user.avatar || null);
   
   // Đồng bộ state bên ngoài với state bên trong
   useEffect(() => {
@@ -60,6 +69,8 @@ const EditUserDialog = ({ user, isOpen, onClose, onUpdate, isUpdating }: EditUse
     defaultValues: {
       name: user.name,
       username: user.username,
+      email: user.email || '',
+      phoneNumber: user.phoneNumber || '',
       gender: user.gender,
       address: user.address,
       roleId: user.role.id,
@@ -72,21 +83,66 @@ const EditUserDialog = ({ user, isOpen, onClose, onUpdate, isUpdating }: EditUse
       reset({
         name: user.name,
         username: user.username,
+        email: user.email || '',
+        phoneNumber: user.phoneNumber || '',
         gender: user.gender,
         address: user.address,
         roleId: user.role.id,
       });
+      setAvatarPreview(user.avatar || null);
+      setAvatarFile(null);
     }
   }, [user, reset]);
 
-  const onSubmit = async (data: EditUserFormValues) => {
-    await onUpdate(data);
-  };
+  const handleAvatarChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      setAvatarFile(file);
+      
+      // Tạo preview URL cho ảnh
+      const previewUrl = URL.createObjectURL(file);
+      
+      // Nếu đã có preview URL cũ, release nó để tránh rò rỉ bộ nhớ
+      if (avatarPreview && !avatarPreview.startsWith('http')) {
+        URL.revokeObjectURL(avatarPreview);
+      }
+      
+      setAvatarPreview(previewUrl);
+    }
+  }, [avatarPreview]);
+
+  // Clean up object URL khi component unmount
+  useEffect(() => {
+    return () => {
+      if (avatarPreview && !avatarPreview.startsWith('http')) {
+        URL.revokeObjectURL(avatarPreview);
+      }
+    };
+  }, [avatarPreview]);
+
+  const onSubmit = useCallback(async (data: EditUserFormValues) => {
+    // Tạo FormData để gửi dữ liệu kèm file
+    const formData = new FormData();
+    
+    // Thêm các field thông tin người dùng vào FormData
+    Object.entries(data).forEach(([key, value]) => {
+      if (value !== undefined && value !== null) {
+        formData.append(key, String(value));
+      }
+    });
+    
+    // Thêm file avatar vào FormData nếu có
+    if (avatarFile) {
+      formData.append('avatar', avatarFile);
+    }
+    
+    await onUpdate(formData);
+  }, [onUpdate, avatarFile]);
 
   const isLoading = isSubmitting || isUpdating;
   
   // Xử lý khi dialog đóng
-  const handleOpenChange = (open: boolean) => {
+  const handleOpenChange = useCallback((open: boolean) => {
     if (!open) {
       // Khi dialog đóng, cập nhật state bên trong trước
       setInternalOpen(false);
@@ -99,7 +155,7 @@ const EditUserDialog = ({ user, isOpen, onClose, onUpdate, isUpdating }: EditUse
     } else {
       setInternalOpen(true);
     }
-  };
+  }, [isLoading, onClose]);
 
   return (
     <Dialog 
@@ -133,6 +189,26 @@ const EditUserDialog = ({ user, isOpen, onClose, onUpdate, isUpdating }: EditUse
             error={errors.username}
             disabled={isLoading}
             registration={register('username')}
+          />
+          
+          {/* Email */}
+          <FormField
+            id="email"
+            label="Email"
+            placeholder="Nhập địa chỉ email"
+            error={errors.email}
+            disabled={isLoading}
+            registration={register('email')}
+          />
+          
+          {/* Số điện thoại */}
+          <FormField
+            id="phoneNumber"
+            label="Số điện thoại"
+            placeholder="Nhập số điện thoại"
+            error={errors.phoneNumber}
+            disabled={isLoading}
+            registration={register('phoneNumber')}
           />
 
           {/* Giới tính */}
@@ -178,6 +254,30 @@ const EditUserDialog = ({ user, isOpen, onClose, onUpdate, isUpdating }: EditUse
             {errors.roleId && (
               <p className="text-xs text-red-500">{errors.roleId.message}</p>
             )}
+          </div>
+
+          {/* Avatar */}
+          <div className="col-span-1 space-y-2 md:col-span-2">
+            <label htmlFor="avatar" className="text-sm font-medium">Avatar</label>
+            <div className="flex flex-col items-start gap-4 sm:flex-row sm:items-center">
+              {avatarPreview && (
+                <div className="relative h-20 w-20 overflow-hidden rounded-full">
+                  <img 
+                    src={avatarPreview} 
+                    alt="Avatar preview" 
+                    className="h-full w-full object-cover" 
+                  />
+                </div>
+              )}
+              <Input
+                id="avatar"
+                type="file"
+                accept="image/*"
+                onChange={handleAvatarChange}
+                className="cursor-pointer"
+                disabled={isLoading}
+              />
+            </div>
           </div>
 
           <DialogFooter className="col-span-1 mt-6 md:col-span-2">

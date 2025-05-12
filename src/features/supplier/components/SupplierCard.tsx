@@ -1,5 +1,5 @@
 import { ImageIcon, MoreVertical, Pencil, Trash2 } from "lucide-react";
-import { memo, useCallback } from "react";
+import { memo, useCallback, useState } from "react";
 
 import { Supplier } from "../types";
 
@@ -21,6 +21,7 @@ interface SupplierCardProps {
 
 const SupplierCardComponent = ({ supplier, onEdit, onDelete }: SupplierCardProps) => {
   const { id, name, image, description, createdAt } = supplier;
+  const [dropdownOpen, setDropdownOpen] = useState(false);
 
   // Format ngày tạo
   const formattedDate = new Date(createdAt).toLocaleDateString("vi-VN", {
@@ -31,10 +32,16 @@ const SupplierCardComponent = ({ supplier, onEdit, onDelete }: SupplierCardProps
 
   // Callback để tránh tạo lại hàm mỗi lần render
   const handleEdit = useCallback(() => {
-    onEdit(supplier);
+    // Đảm bảo đóng dropdown trước khi mở dialog
+    setDropdownOpen(false);
+    // Timeout ngắn để đảm bảo dropdown đã đóng hoàn toàn trước khi mở dialog
+    setTimeout(() => {
+      onEdit(supplier);
+    }, 10);
   }, [supplier, onEdit]);
 
   const handleDelete = useCallback(() => {
+    setDropdownOpen(false);
     onDelete(id);
   }, [id, onDelete]);
 
@@ -47,21 +54,21 @@ const SupplierCardComponent = ({ supplier, onEdit, onDelete }: SupplierCardProps
             alt={name}
             containerClassName="h-full w-full"
             fallback={<ImageIcon className="h-12 w-12" />}
-            className="h-full w-full object-cover transition-transform duration-300 hover:scale-105"
+            className="h-full w-full object-scale-down transition-transform duration-300 hover:scale-105"
           />
         </div>
       </CardHeader>
       <CardContent className="flex flex-1 flex-col p-4">
         <div className="mb-2 flex items-center justify-between">
           <h3 className="truncate text-lg font-semibold">{name}</h3>
-          <DropdownMenu>
+          <DropdownMenu open={dropdownOpen} onOpenChange={setDropdownOpen}>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="icon" className="h-8 w-8">
                 <MoreVertical className="h-4 w-4" />
                 <span className="sr-only">Tùy chọn</span>
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
+            <DropdownMenuContent align="end" sideOffset={5} className="z-50">
               <DropdownMenuItem onClick={handleEdit}>
                 <Pencil className="mr-2 h-4 w-4" />
                 Chỉnh sửa

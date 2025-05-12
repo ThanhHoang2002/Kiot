@@ -1,8 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
-import { useState } from "react";
+import { useState, useCallback } from "react";
 
 import { getCategories } from "../api/categoryApi";
-import { CategoryFilterParams } from "../types";
+import { CategoryFilterParams, CategoryResponse } from "../types";
 
 export const useCategories = (initialFilters: CategoryFilterParams = {}) => {
   const [filters, setFilters] = useState<CategoryFilterParams>({
@@ -19,40 +19,40 @@ export const useCategories = (initialFilters: CategoryFilterParams = {}) => {
     isError,
     error,
     refetch,
-  } = useQuery({
+    isFetching,
+  } = useQuery<CategoryResponse>({
     queryKey: ["categories", filters],
     queryFn: () => getCategories(filters),
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    gcTime: 10 * 60 * 1000, // 10 minutes
+    refetchOnWindowFocus: false, // Don't refetch automatically on window focus
   });
 
-  // Thay đổi trang
-  const handlePageChange = (page: number) => {
+  // Memoize handler functions to prevent unnecessary re-renders
+  const handlePageChange = useCallback((page: number) => {
     setFilters((prev) => ({ ...prev, page }));
-  };
+  }, []);
 
-  // Thay đổi số lượng item trên một trang
-  const handlePageSizeChange = (pageSize: number) => {
+  const handlePageSizeChange = useCallback((pageSize: number) => {
     setFilters((prev) => ({ ...prev, pageSize, page: 1 }));
-  };
+  }, []);
 
-  // Tìm kiếm
-  const handleSearch = (search: string) => {
+  const handleSearch = useCallback((search: string) => {
     setFilters((prev) => ({ ...prev, search, page: 1 }));
-  };
+  }, []);
 
-  // Thay đổi sắp xếp
-  const handleSortChange = (sortBy: string, sortOrder: 'asc' | 'desc' = 'asc') => {
+  const handleSortChange = useCallback((sortBy: string, sortOrder: 'asc' | 'desc' = 'asc') => {
     setFilters((prev) => ({ ...prev, sortBy, sortOrder }));
-  };
+  }, []);
 
-  // Reset bộ lọc
-  const resetFilters = () => {
+  const resetFilters = useCallback(() => {
     setFilters({
       page: 1,
       pageSize: 10,
       sortBy: 'createdAt',
       sortOrder: 'desc',
     });
-  };
+  }, []);
 
   return {
     categories: data?.data?.result || [],
@@ -60,6 +60,7 @@ export const useCategories = (initialFilters: CategoryFilterParams = {}) => {
     isLoading,
     isError,
     error,
+    isFetching,
     filters,
     refetch,
     handlePageChange,

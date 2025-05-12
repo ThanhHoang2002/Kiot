@@ -77,7 +77,8 @@ const AdminProfile = () => {
           onSubmit={(data: PasswordFormValues) => {
             changePassword({
               currentPassword: data.currentPassword,
-              newPassword: data.newPassword
+              newPassword: data.newPassword,
+              confirmPassword: data.confirmPassword
             });
           }}
         />

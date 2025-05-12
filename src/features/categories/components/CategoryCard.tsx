@@ -1,4 +1,5 @@
 import { ImageIcon, MoreVertical, Pencil, Trash2 } from "lucide-react";
+import { useState, useCallback, memo, useMemo } from "react";
 
 import { Category } from "../types";
 
@@ -18,19 +19,38 @@ interface CategoryCardProps {
   onDelete: (id: number) => void;
 }
 
-export const CategoryCard = ({ category, onEdit, onDelete }: CategoryCardProps) => {
+export const CategoryCard = memo(({ category, onEdit, onDelete }: CategoryCardProps) => {
   const { id, name, image, description, createdAt } = category;
+  const [dropdownOpen, setDropdownOpen] = useState(false);
 
-  // Format ngày tạo
-  const formattedDate = new Date(createdAt).toLocaleDateString("vi-VN", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-  });
+  // Format ngày tạo - memoized
+  const formattedDate = useMemo(() => (
+    new Date(createdAt).toLocaleDateString("vi-VN", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+    })
+  ), [createdAt]);
 
-  // Rút gọn mô tả nếu quá dài
-  const truncatedDescription =
-    description.length > 100 ? `${description.substring(0, 100)}...` : description;
+  // Rút gọn mô tả nếu quá dài - memoized
+  const truncatedDescription = useMemo(() => (
+    description.length > 100 ? `${description.substring(0, 100)}...` : description
+  ), [description]);
+
+  // Callback để tránh tạo lại hàm mỗi lần render
+  const handleEdit = useCallback(() => {
+    // Đảm bảo đóng dropdown trước khi mở dialog
+    setDropdownOpen(false);
+    // Timeout ngắn để đảm bảo dropdown đã đóng hoàn toàn trước khi mở dialog
+    setTimeout(() => {
+      onEdit(category);
+    }, 10);
+  }, [category, onEdit]);
+
+  const handleDelete = useCallback(() => {
+    setDropdownOpen(false);
+    onDelete(id);
+  }, [id, onDelete]);
 
   return (
     <Card className="flex h-full flex-col overflow-hidden">
@@ -42,26 +62,27 @@ export const CategoryCard = ({ category, onEdit, onDelete }: CategoryCardProps) 
             containerClassName="h-full w-full"
             fallback={<ImageIcon className="h-12 w-12" />}
             className="h-full w-full object-cover transition-transform duration-300 hover:scale-105"
+            loading="lazy"
           />
         </div>
       </CardHeader>
       <CardContent className="flex flex-1 flex-col p-4">
         <div className="mb-2 flex items-center justify-between">
           <h3 className="truncate text-lg font-semibold">{name}</h3>
-          <DropdownMenu>
+          <DropdownMenu open={dropdownOpen} onOpenChange={setDropdownOpen}>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="icon" className="h-8 w-8">
                 <MoreVertical className="h-4 w-4" />
                 <span className="sr-only">Tùy chọn</span>
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => onEdit(category)}>
+            <DropdownMenuContent align="end" sideOffset={5} className="z-50">
+              <DropdownMenuItem onClick={handleEdit}>
                 <Pencil className="mr-2 h-4 w-4" />
                 Chỉnh sửa
               </DropdownMenuItem>
               <DropdownMenuItem 
-                onClick={() => onDelete(id)}
+                onClick={handleDelete}
                 className="text-destructive"
               >
                 <Trash2 className="mr-2 h-4 w-4" />
@@ -79,4 +100,6 @@ export const CategoryCard = ({ category, onEdit, onDelete }: CategoryCardProps) 
       </CardFooter>
     </Card>
   );
-}; 
+});
+
+CategoryCard.displayName = 'CategoryCard'; 

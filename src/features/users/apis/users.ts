@@ -95,7 +95,7 @@ export const updateUser = async (userId: number, userData: Partial<CreateUserPay
         } 
         : {};
         
-    const response = await axiosClient.patch<UserResponse>(`${BASE_PATH}/${userId}`, userData, config);
+    const response = await axiosClient.put<UserResponse>(`${BASE_PATH}/${userId}`, userData, config);
     return response.data;
 };
 

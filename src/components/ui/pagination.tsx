@@ -10,6 +10,27 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 
+import {
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+  PaginationList,
+} from "@/components/ui/pagination-components"
+
+// Re-export the pagination components
+export {
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+  PaginationList,
+}
+
 interface PaginationProps {
   page: number
   total: number
