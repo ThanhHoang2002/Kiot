@@ -136,7 +136,7 @@ const InvoiceRow = memo(({ invoice, onViewDetails }: { invoice: Invoice, onViewD
             <p className="text-xs text-muted-foreground">{invoice.customer.phone}</p>
           </div>
         ) : (
-          <span className="text-muted-foreground">N/A</span>
+          <span className="text-muted-foreground">Khách lẻ</span>
         )}
       </TableCell>
       <TableCell className="hidden md:table-cell">{formatDate(invoice.createdAt)}</TableCell>

@@ -1,5 +1,6 @@
 import { generateQRUrl, checkPaymentStatus } from "../api/qrPaymentApi"
 import { processPayment } from "../api/transactionApi"
+import { speakText } from "../api/zaloTtsApi"
 import { PAYMENT_TIME, PAYMENT_CHECK_INTERVAL, TRANSACTION_PREFIX } from "../constant/payment"
 import { useQRPaymentStore } from "../store/qrStore"
 import { OrdersPayload } from "../types"
@@ -10,16 +11,59 @@ export const processingPayment = async (transaction: OrdersPayload) : Promise<bo
     switch (transaction.paymentMethod ){
         case 'CASH':
            return await CashPayment(transaction)
-            break
+            
         case 'TRANSFER':
            return await TransferPayment(transaction)
-            break
+            
         default:
             return false
-            break
+            
     }
 }
-const CashPayment =async(transaction: OrdersPayload): Promise<boolean>=>{
+
+// Format số tiền thành chuỗi đọc dễ hiểu
+const formatMoneyForSpeech = (amount: number): string => {
+    // Nếu ít hơn 1 triệu, đọc số ngàn
+    if (amount < 1000000) {
+        return `${Math.floor(amount / 1000)} nghìn`;
+    }
+    
+    // Nếu từ 1 triệu đến 999 triệu
+    if (amount < 1000000000) {
+        const millions = Math.floor(amount / 1000000);
+        const thousands = Math.floor((amount % 1000000) / 1000);
+        
+        if (thousands > 0) {
+            return `${millions} triệu ${thousands} nghìn`;
+        }
+        return `${millions} triệu`;
+    }
+    
+    // Nếu từ 1 tỷ trở lên
+    const billions = Math.floor(amount / 1000000000);
+    const millions = Math.floor((amount % 1000000000) / 1000000);
+    
+    if (millions > 0) {
+        return `${billions} tỷ ${millions} triệu`;
+    }
+    return `${billions} tỷ`;
+}
+
+// Phát thông báo thanh toán thành công
+export const announceSucessfulPayment = async (amount: number) => {
+    try {
+        const formattedAmount = formatMoneyForSpeech(amount);
+        const message = `Thanh toán thành công ${formattedAmount} đồng`;
+        
+        // Phát thông báo bằng giọng nói
+        await speakText(message);
+    } catch (error) {
+        console.error("Failed to announce payment:", error);
+        // Không throw lỗi để không làm gián đoạn quy trình thanh toán
+    }
+}
+
+const CashPayment = async(transaction: OrdersPayload): Promise<boolean>=>{
     await processPayment(transaction)
     return true
 }
@@ -30,7 +74,7 @@ const TransferPayment = async(transaction: OrdersPayload): Promise<boolean> => {
         sum + (item.sellPrice * item.quantity), 0);
     
     // Generate a unique reference code for this transaction
-    const referenceCode = `${TRANSACTION_PREFIX}-${Date.now()}-${transaction.customerId}`;
+    const referenceCode = `${TRANSACTION_PREFIX}-${Date.now()}-${transaction.customerId ?transaction.customerId: '1'}`;
     
     // Generate QR code URL for payment
     const qrCodeUrl = generateQRUrl(totalAmount, referenceCode);
@@ -76,12 +120,15 @@ const TransferPayment = async(transaction: OrdersPayload): Promise<boolean> => {
         };
         
         // Function to resolve the promise only once
-        const resolveOnce = (success: boolean) => {
+        const resolveOnce = async (success: boolean) => {
             if (!paymentResolved) {
                 paymentResolved = true;
                 
                 // Ensure cleanup happens before resolving
                 cleanup();
+                
+                // Nếu thanh toán thành công, phát thông báo
+           
                 
                 // Resolve after a short delay to allow state to settle
                 setTimeout(() => {

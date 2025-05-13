@@ -15,4 +15,5 @@ export const paths = {
     import: '/imports',
     importDetail: '/imports/:id',
     importCreate: '/imports/create',
+    shift: '/shift',
 }

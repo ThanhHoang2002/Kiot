@@ -20,6 +20,7 @@ const CustomerPage = lazy(() => import("@/app/pages/CustomerPage"));
 const ImportPage = lazy(() => import("@/app/pages/ImportPage"));
 const ImportDetailPage = lazy(() => import("@/app/pages/ImportDetailPage"));
 const CreateImportPage = lazy(() => import("@/app/pages/CreateImportPage"));
+const ShiftPage = lazy(() => import("@/app/pages/ShiftPage"));
 
 export const AppRouter = () => {
   const router = createBrowserRouter([
@@ -74,6 +75,10 @@ export const AppRouter = () => {
         {
           path: paths.importDetail,
           element: <ImportDetailPage />,
+        },
+        {
+          path: paths.shift,
+          element: <ShiftPage />,
         },
         {
           path: paths.importCreate,

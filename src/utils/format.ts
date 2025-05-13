@@ -1,16 +1,17 @@
 /**
  * Format a number as currency (VND)
- * @param value The number to format
+ * @param amount The number to format
  * @returns Formatted currency string
  */
-export const formatCurrency = (value: number): string => {
-  return new Intl.NumberFormat('vi-VN', {
-    style: 'currency',
-    currency: 'VND',
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0
-  }).format(value);
-};
+export const formatCurrency = (amount: number | null | undefined): string => {
+  if (amount === null || amount === undefined) return "N/A"
+  
+  return new Intl.NumberFormat("vi-VN", {
+    style: "currency",
+    currency: "VND",
+    maximumFractionDigits: 0,
+  }).format(amount)
+}
 
 /**
  * Format a number with commas as thousands separators
