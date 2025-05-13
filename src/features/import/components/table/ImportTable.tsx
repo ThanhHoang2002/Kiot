@@ -1,4 +1,10 @@
-import React from "react";
+import { EyeIcon } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+
+import { ImportHistory } from "../../types/import";
+
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 import {
   Table,
   TableBody,
@@ -7,13 +13,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { EyeIcon } from "lucide-react";
-import { ImportHistory } from "../../types/import";
-import { formatDate, formatPrice } from "@/utils/formatter";
-import { useNavigate } from "react-router-dom";
 import { paths } from "@/config/paths";
+import { formatDate, formatPrice } from "@/utils/formatter";
 
 interface ImportTableProps {
   imports: ImportHistory[];
@@ -21,7 +22,7 @@ interface ImportTableProps {
   refetch: () => void;
 }
 
-const ImportTable = ({ imports, isLoading, refetch }: ImportTableProps) => {
+const ImportTable = ({ imports, isLoading }: ImportTableProps) => {
   const navigate = useNavigate();
 
   const handleViewImport = (importId: number) => {
@@ -32,7 +33,7 @@ const ImportTable = ({ imports, isLoading, refetch }: ImportTableProps) => {
   if (isLoading) {
     return (
       <Card className="p-4">
-        <div className="flex justify-center items-center h-40">
+        <div className="flex h-40 items-center justify-center">
           <p>Đang tải dữ liệu...</p>
         </div>
       </Card>
@@ -42,7 +43,7 @@ const ImportTable = ({ imports, isLoading, refetch }: ImportTableProps) => {
   if (imports.length === 0) {
     return (
       <Card className="p-4">
-        <div className="flex justify-center items-center h-40">
+        <div className="flex h-40 items-center justify-center">
           <p>Không có lịch sử nhập hàng nào</p>
         </div>
       </Card>
