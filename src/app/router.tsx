@@ -17,6 +17,10 @@ const AdminProfile = lazy(() => import("@/app/pages/AdminProfile"));
 const CategoryPage = lazy(() => import("@/app/pages/CategoryPage"));
 const Supplier = lazy(() => import("@/app/pages/Supplier"));
 const CustomerPage = lazy(() => import("@/app/pages/CustomerPage"));
+const ImportPage = lazy(() => import("@/app/pages/ImportPage"));
+const ImportDetailPage = lazy(() => import("@/app/pages/ImportDetailPage"));
+const CreateImportPage = lazy(() => import("@/app/pages/CreateImportPage"));
+
 export const AppRouter = () => {
   const router = createBrowserRouter([
     {
@@ -62,6 +66,18 @@ export const AppRouter = () => {
         {
           path: paths.customer,
           element: <CustomerPage />,
+        },
+        {
+          path: paths.import,
+          element: <ImportPage />,
+        },
+        {
+          path: paths.importDetail,
+          element: <ImportDetailPage />,
+        },
+        {
+          path: paths.importCreate,
+          element: <CreateImportPage />,
         },
       ],
     },

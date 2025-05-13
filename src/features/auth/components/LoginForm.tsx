@@ -14,7 +14,7 @@ import {
   CardContent 
 } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-
+import { loginBackground } from '@/assets/images';
 
 const LoginForm = () => {
   const navigate = useNavigate();
@@ -42,7 +42,7 @@ const LoginForm = () => {
   };
 
   return (
-    <div className="flex h-screen w-full items-center justify-center bg-[url(https://cdn-app.kiotviet.vn/retailler/Content/img/login-bg-update.png)]">
+    <div className="flex h-screen w-full items-center justify-center" style={{ backgroundImage: `url(${loginBackground})` }}>
       <Card className="w-full max-w-md rounded-lg pb-5 shadow-lg">
         <CardHeader className="space-y-1 pb-8 pt-6 text-center">       
           <CardTitle className="text-2xl font-bold">Chào mừng trở lại</CardTitle>

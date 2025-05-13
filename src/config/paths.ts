@@ -12,4 +12,7 @@ export const paths = {
     adminProfile: '/profile',
     category: '/category',
     supplier: '/supplier',
+    import: '/imports',
+    importDetail: '/imports/:id',
+    importCreate: '/imports/create',
 }

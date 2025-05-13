@@ -43,7 +43,7 @@ export const getSuppliers = async (params: SupplierFilterParams = {}): Promise<S
     sort?: string;
   } = {
     page: params.page || 1,
-    size: params.pageSize || 10,
+    size: params.pageSize || 12,
   };
   
   // Nếu có filter, thêm vào request params

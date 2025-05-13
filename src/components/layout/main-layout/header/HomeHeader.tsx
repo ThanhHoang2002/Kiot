@@ -1,4 +1,4 @@
-import { Factory, FileChartColumn, List, UserIcon } from "lucide-react"
+import { Factory, FileChartColumn, List, PackageOpenIcon, UserIcon } from "lucide-react"
 import { useLocation, useNavigate } from "react-router-dom"
 
 import HeaderItem, { HeaderItemProps } from "./HeaderItem"
@@ -6,6 +6,7 @@ import UserProfile from "./UserProfile"
 
 import { eyeIcon,boxIcon,customerIcon,sellIcon } from "@/assets/icon"
 import {paths} from "@/config/paths"
+import { logoProject } from "@/assets/images"
 const headerItems : HeaderItemProps[]= [
   {
     title: "Tổng quan",
@@ -27,6 +28,11 @@ const headerItems : HeaderItemProps[]= [
     title: "Hóa đơn",
     link: paths.invoice,
     icon: <FileChartColumn className="mr-2 h-5 w-5"/>,
+  },
+  {
+    title: "Nhập hàng",
+    link: paths.import,
+    icon: <PackageOpenIcon className="mr-2 h-5 w-5"/>,
   },
   {
     title: "Khách hàng",
@@ -57,7 +63,7 @@ const HomeHeader = () => {
   const navigate = useNavigate()
   return (
     <div className="flex h-full w-full items-center justify-between text-white">
-      <img src='https://logo.kiotviet.vn/KiotViet-Logo-Horizontal-White-Text.svg' alt="logo" className="ml-1 h-11 cursor-pointer" onClick={()=>navigate('/')}/>
+      <img src={logoProject} alt="logo" className="ml-1 h-11 cursor-pointer" onClick={()=>navigate('/')}/>
       <div className="flex h-full items-center justify-center">
         {
           headerItems.map((item, index) => (

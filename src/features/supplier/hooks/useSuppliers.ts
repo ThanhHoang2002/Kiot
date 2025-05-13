@@ -7,7 +7,7 @@ import { SupplierFilterParams } from "../types";
 export const useSuppliers = (initialFilters: SupplierFilterParams = {}) => {
   const [filters, setFilters] = useState<SupplierFilterParams>({
     page: 1,
-    pageSize: 10,
+    pageSize: 12,
     sortBy: 'createdAt',
     sortOrder: 'desc',
     ...initialFilters,
@@ -53,7 +53,7 @@ export const useSuppliers = (initialFilters: SupplierFilterParams = {}) => {
   const resetFilters = useCallback(() => {
     setFilters({
       page: 1,
-      pageSize: 10,
+      pageSize: 12,
       sortBy: 'createdAt',
       sortOrder: 'desc',
     });
@@ -73,4 +73,6 @@ export const useSuppliers = (initialFilters: SupplierFilterParams = {}) => {
     handleSortChange,
     resetFilters,
   };
-}; 
+};
+
+export default useSuppliers; 

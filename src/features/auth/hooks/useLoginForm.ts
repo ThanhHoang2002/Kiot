@@ -4,7 +4,6 @@ import { useForm } from "react-hook-form";
 
 import { LoginFormValues, loginSchema } from "../schema/login.schema";
 
-
 export const useLoginForm = () => {
   return useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),

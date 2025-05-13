@@ -47,7 +47,7 @@ const CategoryPage = () => {
   };
 
   return (
-    <div className="container px-4 py-6">
+    <div className="p-6">
       <div className="mb-6">
         <h1 className="text-2xl font-bold tracking-tight">Quản lý danh mục</h1>
         <p className="text-muted-foreground">

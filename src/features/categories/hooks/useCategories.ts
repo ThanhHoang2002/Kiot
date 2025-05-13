@@ -7,7 +7,7 @@ import { CategoryFilterParams, CategoryResponse } from "../types";
 export const useCategories = (initialFilters: CategoryFilterParams = {}) => {
   const [filters, setFilters] = useState<CategoryFilterParams>({
     page: 1,
-    pageSize: 10,
+    pageSize: 12,
     sortBy: 'createdAt',
     sortOrder: 'desc',
     ...initialFilters,
@@ -48,7 +48,7 @@ export const useCategories = (initialFilters: CategoryFilterParams = {}) => {
   const resetFilters = useCallback(() => {
     setFilters({
       page: 1,
-      pageSize: 10,
+      pageSize: 12,
       sortBy: 'createdAt',
       sortOrder: 'desc',
     });

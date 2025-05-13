@@ -51,7 +51,7 @@ const buildRequestParams = (params: CategoryFilterParams, filterStr?: string) =>
     sort?: string;
   } = {
     page: params.page || 1,
-    size: params.pageSize || 20,
+    size: params.pageSize || 12,
   };
   
   // Nếu có filter, thêm vào request params
