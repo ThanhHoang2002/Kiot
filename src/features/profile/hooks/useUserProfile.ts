@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 import { getUserProfile, updateUserProfile, changePassword } from '../api/profileApi';
 
@@ -25,7 +26,7 @@ export const useUserProfile = (userId: number) => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { setCurrentUser } = useAuthStore();
-
+  const navigate = useNavigate();
   // Query để lấy thông tin người dùng
   const {
     data: profileData,
@@ -39,7 +40,7 @@ export const useUserProfile = (userId: number) => {
 
   // Cập nhật avatar preview khi có dữ liệu
   const userProfile = profileData?.data;
-  
+
   // Cập nhật preview khi có dữ liệu mới
   useEffect(() => {
     if (userProfile?.avatar && !avatarPreview) {
@@ -52,7 +53,7 @@ export const useUserProfile = (userId: number) => {
     mutationFn: (data: ProfileFormData) => {
       // Tạo FormData nếu có file avatar
       let payload: FormData | ProfileFormData = data;
-      
+
       if (avatarFile) {
         const formData = new FormData();
         formData.append('avatar', avatarFile);
@@ -62,29 +63,29 @@ export const useUserProfile = (userId: number) => {
         formData.append('address', data.address);
         payload = formData;
       }
-      
+
       return updateUserProfile(userId, payload);
     },
     onSuccess: (response) => {
       // Cập nhật thông tin người dùng trong store và localStorage
       if (response?.data) {
         const updatedUser = response.data;
-        
+
         // Lấy dữ liệu hiện tại từ localStorage
         const currentData = JSON.parse(localStorage.getItem('currentUser') || '{}');
         // Cập nhật user trong object
         currentData.user = updatedUser;
         // Lưu lại vào localStorage
         localStorage.setItem('currentUser', JSON.stringify(currentData));
-        
+
         // Cập nhật store - bỏ qua lỗi type mismatch
         // @ts-expect-error - Bỏ qua lỗi type mismatch
         setCurrentUser(updatedUser);
-        
+
         // Invalidate queries
         queryClient.invalidateQueries({ queryKey: ['info'] });
         queryClient.invalidateQueries({ queryKey: ['userProfile', userId] });
-        
+
         toast({
           title: 'Thành công',
           description: 'Thông tin cá nhân đã được cập nhật',
@@ -142,6 +143,7 @@ export const useUserProfile = (userId: number) => {
     if (userProfile?.avatar) {
       setAvatarPreview(userProfile.avatar);
     }
+    navigate('/');
   };
 
   return {
