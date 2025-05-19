@@ -1,7 +1,9 @@
 import { TodayStatistics } from '../types/statistics';
-import { mockTodayStatistics } from '../utils/mockData';
+
+import axiosClient from '@/lib/axios';
+import { ApiResponse } from '@/types/apiResponse.type';
 
 export const fetchTodayStatistics = async (): Promise<TodayStatistics> => {
-  // Khi có API thật, chỉ cần thay đổi phần này
-  return mockTodayStatistics();
+  const response = await axiosClient.get<ApiResponse<TodayStatistics>>(`/statistics/today`)
+  return response.data.data;
 }; 

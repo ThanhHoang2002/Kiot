@@ -6,6 +6,7 @@ import { login } from '../apis/login';
 import { useLoginForm } from '../hooks/useLoginForm';
 import { LoginFormValues } from '../schema/login.schema';
 
+import { loginBackground } from '@/assets/images';
 import { Button } from '@/components/ui/button';
 import { 
   Card, 
@@ -14,7 +15,6 @@ import {
   CardContent 
 } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { loginBackground } from '@/assets/images';
 
 const LoginForm = () => {
   const navigate = useNavigate();

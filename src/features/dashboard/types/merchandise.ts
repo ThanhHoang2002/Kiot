@@ -6,9 +6,3 @@ export interface MerchandiseItem {
   name: string;
   value: number;
 }
-
-export interface MerchandiseResponse {
-  items: MerchandiseItem[];
-  timeframe: MerchandiseTimeframe;
-  metric: MerchandiseMetric;
-} 

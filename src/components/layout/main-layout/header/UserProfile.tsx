@@ -1,3 +1,4 @@
+import { useQueryClient } from '@tanstack/react-query';
 import { LogOut, Settings, UserCircle2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
@@ -13,8 +14,8 @@ import useAuthStore from '@/store/authStore'
 
 const UserProfile = () => {
   const { clearCurrentUser} = useAuthStore()
-  const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}').user;
-
+  const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
+  const queryClient = useQueryClient() 
   const navigate = useNavigate()
   
   const handleLogout = () => {
@@ -23,7 +24,7 @@ const UserProfile = () => {
     
     // Xóa currentUser khỏi store và localStorage
     clearCurrentUser()
-    
+    queryClient.clear()
     // Chuyển hướng về trang login
     navigate('/login')
   }
@@ -65,7 +66,7 @@ const UserProfile = () => {
           </div>
           <div className="flex flex-col">
             <p className="font-medium">{currentUser.name}</p>
-            <p className="text-xs text-muted-foreground">{currentUser?.role?.name}</p>
+            <p className="text-xs capitalize text-muted-foreground">{currentUser?.role?.name}</p>
           </div>
         </div>
         
