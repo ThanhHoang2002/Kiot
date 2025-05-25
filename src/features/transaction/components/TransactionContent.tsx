@@ -12,6 +12,18 @@ import { useTransactionStore } from '../store/transactionStore';
 import { Customer, OrdersPayload } from '../types';
 import { announceSucessfulPayment, processingPayment } from '../utils/processingPayment';
 
+import { 
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import { exportInvoicePdf } from '@/features/invoice/api/invoice';
+import { downloadFile } from '@/features/invoice/components/InvoiceTable';
 import { toast } from '@/hooks/use-toast';
 import { cn } from '@/utils/cn';
 
@@ -25,6 +37,8 @@ export const TransactionContent = () => {
   const [isCustomerDialogOpen, setIsCustomerDialogOpen] = useState(false);
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
+  const [showPrintDialog, setShowPrintDialog] = useState(false);
+  const [orderId, setOrderId] = useState<number | null>(null);
   const queryClient = useQueryClient();
   const { 
     getActiveTransaction, 
@@ -70,9 +84,9 @@ export const TransactionContent = () => {
       
       const response = await processingPayment(orderPayload);
       // Clear current transaction after successful payment
-      if(response){
+      if(response) {
         removeTransaction(transaction.id);
-        setSelectedCustomer(null)
+        setSelectedCustomer(null);
         
         // Invalidate all relevant queries
         queryClient.invalidateQueries({ queryKey: ['products'] });
@@ -83,19 +97,21 @@ export const TransactionContent = () => {
         
         // Invalidate currentShift để cập nhật thông tin ca làm việc
         queryClient.invalidateQueries({ queryKey: ["currentShift"] });
+        
         if(orderPayload.paymentMethod === 'TRANSFER'){
           const totalAmount = orderPayload.items.reduce((sum, item) => sum + (item.sellPrice * item.quantity), 0);
           await announceSucessfulPayment(totalAmount);
         }
-        toast({
-          title: "Thành công",
-          description: "Đơn hàng đã được thanh toán"
-        })
+        
+        // Store the order ID and show the print dialog
+        // The response contains the order data, including the ID
+        setOrderId(response.data.id);
+        setShowPrintDialog(true);
       } else {
         toast({
           title: "Thất bại",
           description: "Đơn hàng thanh toán thất bại"
-        })
+        });
       }
     } catch (error: unknown) {
       // Show error message
@@ -108,6 +124,25 @@ export const TransactionContent = () => {
       console.error("Payment error:", error);
     } finally {
       setIsProcessingPayment(false);
+    }
+  };
+  
+  const handlePrintInvoice = async () => {
+    console.log(orderId)
+    if (!orderId) return;
+    
+    try {
+      const pdfBlob = await exportInvoicePdf(orderId)
+      downloadFile(pdfBlob, `hoa-don-${orderId}.pdf`)
+
+      setShowPrintDialog(false);
+    } catch (error) {
+      console.error("Error printing invoice:", error);
+      toast({
+        title: "Lỗi in hóa đơn",
+        description: "Không thể in hóa đơn. Vui lòng thử lại sau.",
+        variant: "destructive"
+      });
     }
   };
   
@@ -219,6 +254,26 @@ export const TransactionContent = () => {
       
       {/* QR Payment Dialog */}
       <QRPaymentDialog />
+      
+      {/* Print Invoice Confirmation Dialog */}
+      <AlertDialog open={showPrintDialog} onOpenChange={setShowPrintDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Thanh toán thành công</AlertDialogTitle>
+            <AlertDialogDescription>
+              Đơn hàng đã được thanh toán thành công. Bạn có muốn in hóa đơn không?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setShowPrintDialog(false)}>
+              Không, cảm ơn
+            </AlertDialogCancel>
+            <AlertDialogAction onClick={handlePrintInvoice}>
+              In hóa đơn
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }; 

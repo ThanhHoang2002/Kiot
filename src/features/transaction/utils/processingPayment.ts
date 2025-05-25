@@ -7,7 +7,7 @@ import { OrdersPayload } from "../types"
 
 // Create a store for QR payment state
 
-export const processingPayment = async (transaction: OrdersPayload) : Promise<boolean>=>{
+export const processingPayment = async (transaction: OrdersPayload) => {
     switch (transaction.paymentMethod ){
         case 'CASH':
            return await CashPayment(transaction)
@@ -63,12 +63,12 @@ export const announceSucessfulPayment = async (amount: number) => {
     }
 }
 
-const CashPayment = async(transaction: OrdersPayload): Promise<boolean>=>{
-    await processPayment(transaction)
-    return true
+const CashPayment = async(transaction: OrdersPayload) => {
+    const response = await processPayment(transaction)
+    return response;
 }
 
-const TransferPayment = async(transaction: OrdersPayload): Promise<boolean> => {
+const TransferPayment = async(transaction: OrdersPayload) => {
     // Calculate total amount to pay
     const totalAmount = transaction.items.reduce((sum, item) => 
         sum + (item.sellPrice * item.quantity), 0);
@@ -120,7 +120,7 @@ const TransferPayment = async(transaction: OrdersPayload): Promise<boolean> => {
         };
         
         // Function to resolve the promise only once
-        const resolveOnce = async (success: boolean) => {
+        const resolveOnce = async (success: boolean, response = null) => {
             if (!paymentResolved) {
                 paymentResolved = true;
                 
@@ -132,7 +132,7 @@ const TransferPayment = async(transaction: OrdersPayload): Promise<boolean> => {
                 
                 // Resolve after a short delay to allow state to settle
                 setTimeout(() => {
-                    resolve(success);
+                    resolve(success ? response : false);
                 }, 0);
             }
         };
@@ -165,10 +165,10 @@ const TransferPayment = async(transaction: OrdersPayload): Promise<boolean> => {
                     paymentCompleted = true;
                     
                     // Process the successful payment
-                    await processPayment(transaction);
+                    const response = await processPayment(transaction);
                     
                     // Resolve with success
-                    resolveOnce(true);
+                    resolveOnce(true, response);
                 }
             } catch (error) {
                 console.error('Error checking payment status:', error);

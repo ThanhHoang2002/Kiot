@@ -63,7 +63,7 @@ const getPaymentStatusConfig = (status: PaymentStatus) => {
 };
 
 // Helper function để tải file từ Blob
-const downloadFile = (blob: Blob, filename: string) => {
+export const downloadFile = (blob: Blob, filename: string) => {
   const url = window.URL.createObjectURL(blob);
   const link = document.createElement('a');
   link.href = url;

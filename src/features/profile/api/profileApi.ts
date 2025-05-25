@@ -14,14 +14,12 @@ export const getUserProfile = async (userId: number): Promise<ApiResponse<User>>
  * Cập nhật thông tin người dùng
  */
 export const updateUserProfile = async (userId: number, userData: FormData | Record<string, unknown>): Promise<ApiResponse<User>> => {
-  const config = userData instanceof FormData 
-    ? { 
+  const config =
+     { 
         headers: {
           'Content-Type': 'multipart/form-data'
         } 
       } 
-    : {};
-      
   const response = await axiosClient.put<ApiResponse<User>>(`/users/${userId}`, userData, config);
   return response.data;
 };
