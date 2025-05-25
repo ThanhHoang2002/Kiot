@@ -1,7 +1,6 @@
 import { Users, BarChart, Clock } from "lucide-react"
 import { useState, useEffect } from "react"
 
-import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -145,12 +144,6 @@ const ShiftPage = () => {
           <p className="text-muted-foreground">
             Tổng cộng {totalItems || 0} ca làm việc
           </p>
-        </div>
-        <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm">
-            Xuất báo cáo
-          </Button>
-          <Button size="sm">Mở ca mới</Button>
         </div>
       </div>
 

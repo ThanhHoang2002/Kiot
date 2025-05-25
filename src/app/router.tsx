@@ -3,6 +3,7 @@ import { createBrowserRouter, RouterProvider } from "react-router-dom";
 
 import UsersPage from "./pages/AdminUsers";
 
+import AdminGuard from "@/components/auth/AdminGuard";
 import AuthGuard from "@/components/auth/AuthGuard";
 import NotFoundPage from "@/components/errors/NotFoundPage";
 import HomeHeader from "@/components/layout/main-layout/header/HomeHeader";
@@ -34,7 +35,7 @@ export const AppRouter = () => {
       children: [
         {
           path: paths.home,
-          element: <Dashboard />,
+          element: <AdminGuard><Dashboard /></AdminGuard>,
         },
         {
           path: paths.products,
@@ -50,7 +51,7 @@ export const AppRouter = () => {
         },
         {
           path: paths.users,
-          element: <UsersPage />,
+          element: <AdminGuard><UsersPage /></AdminGuard>,
         },
         {
           path: paths.category,

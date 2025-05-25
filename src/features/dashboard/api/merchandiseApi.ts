@@ -1,10 +1,12 @@
-import { MerchandiseResponse, MerchandiseTimeframe, MerchandiseMetric } from '../types/merchandise';
-import { mockMerchandiseData } from '../utils/mockData';
+import { MerchandiseTimeframe, MerchandiseMetric, MerchandiseItem } from '../types/merchandise';
+
+import axiosClient from '@/lib/axios';
+import { ApiResponse } from '@/types/apiResponse.type';
 
 export const fetchMerchandiseData = async (
   timeframe: MerchandiseTimeframe,
   metric: MerchandiseMetric
-): Promise<MerchandiseResponse> => {
-  // Khi có API thật, thay thế phần này
-  return mockMerchandiseData(timeframe, metric);
+): Promise<MerchandiseItem[]> => {
+  const response = await axiosClient.get<ApiResponse<MerchandiseItem[]>>(`/merchandise/top?timeframe=${timeframe}&metric=${metric}&limit=${10}`)
+  return response.data.data;
 }; 

@@ -1,4 +1,4 @@
-export type RevenueTimeframe = 'daily' | 'hourly' | 'weekday';
+export type RevenueTimeframe = 'daily' | 'hourly' | 'weekly';
 
 export interface RevenueItem {
   value: number;

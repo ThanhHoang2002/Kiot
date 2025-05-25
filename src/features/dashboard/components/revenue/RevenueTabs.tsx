@@ -8,7 +8,7 @@ import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 const timeframeOptions: { value: RevenueTimeframe; label: string }[] = [
   { value: 'daily', label: 'Theo ngày' },
   { value: 'hourly', label: 'Theo giờ' },
-  { value: 'weekday', label: 'Theo thứ' }
+  { value: 'weekly', label: 'Theo tuần' }
 ];
 
 export const RevenueTabs: React.FC = () => {

@@ -1,4 +1,3 @@
-
 import { useNavigate } from "react-router-dom";
 
 import { cn } from "@/utils/cn";
@@ -8,6 +7,7 @@ export interface HeaderItemProps {
     link?: string;
     icon?: string | React.ReactNode;
     isActive?: boolean;
+    adminOnly?: boolean;
 }
 const HeaderItem = (props : HeaderItemProps) => {
     const {title, icon, link, isActive} = props;

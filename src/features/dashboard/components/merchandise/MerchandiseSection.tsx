@@ -76,7 +76,7 @@ export const MerchandiseSection= memo(() => {
           </SelectContent>
         </Select>
       </div>
-      <MerchandiseChart data={data.items} metric={data.metric} />
+      <MerchandiseChart data={data} metric={metric} />
     </Card>
   );
 }); 

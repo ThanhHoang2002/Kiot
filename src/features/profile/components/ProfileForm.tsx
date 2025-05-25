@@ -13,6 +13,8 @@ import { User } from '@/features/users/types';
 const profileSchema = z.object({
   name: z.string().min(2, { message: 'Tên phải có ít nhất 2 ký tự' }),
   username: z.string().min(3, { message: 'Username phải có ít nhất 3 ký tự' }),
+  email: z.string().email({ message: 'Email không hợp lệ' }),
+  phoneNumber: z.string().min(8, { message: 'Số điện thoại phải có ít nhất 8 số' }).regex(/^\d+$/, { message: 'Số điện thoại chỉ bao gồm chữ số' }),
   gender: z.enum(['MALE', 'FEMALE', 'OTHER'], {
     errorMap: () => ({ message: 'Vui lòng chọn giới tính' })
   }),
@@ -60,6 +62,8 @@ export const ProfileForm = ({
     defaultValues: {
       name: '',
       username: '',
+      email: '',
+      phoneNumber: '',
       gender: 'MALE' as const,
       address: '',
     },
@@ -71,6 +75,8 @@ export const ProfileForm = ({
       reset({
         name: userProfile.name || '',
         username: userProfile.username || '',
+        email: userProfile.email || '',
+        phoneNumber: userProfile.phoneNumber || '',
         gender: userProfile.gender || 'MALE',
         address: userProfile.address || '',
       });
@@ -130,6 +136,26 @@ export const ProfileForm = ({
           error={errors.username}
           disabled={isSubmitting}
           registration={register('username')}
+        />
+
+        {/* Email */}
+        <FormField
+          id="email"
+          label="Email"
+          placeholder="Nhập email"
+          error={errors.email}
+          disabled={isSubmitting}
+          registration={register('email')}
+        />
+
+        {/* Số điện thoại */}
+        <FormField
+          id="phoneNumber"
+          label="Số điện thoại"
+          placeholder="Nhập số điện thoại"
+          error={errors.phoneNumber}
+          disabled={isSubmitting}
+          registration={register('phoneNumber')}
         />
 
         {/* Giới tính */}

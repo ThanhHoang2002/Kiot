@@ -67,7 +67,7 @@ const UserProfile = () => {
           </div>
           <div className="flex flex-col">
             <p className="font-medium">{currentUser.name}</p>
-            <p className="text-xs text-muted-foreground">{currentUser?.role?.name}</p>
+            <p className="text-xs capitalize text-muted-foreground">{currentUser?.role?.name}</p>
           </div>
         </div>
         

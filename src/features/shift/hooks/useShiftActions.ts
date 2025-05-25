@@ -17,6 +17,7 @@ export const useShiftActions = () => {
         variant: "default",
       })
       queryClient.invalidateQueries({ queryKey: ["currentShift"] })
+      queryClient.invalidateQueries({ queryKey: ["shifts"] })
     },
     onError: (error) => {
       toast({
@@ -36,6 +37,7 @@ export const useShiftActions = () => {
         variant: "default",
       })
       queryClient.invalidateQueries({ queryKey: ["currentShift"] })
+      queryClient.invalidateQueries({ queryKey: ["shifts"] })
     },
     onError: (error ) => {
       let errorMessage = "Đã xảy ra lỗi khi đóng ca"
