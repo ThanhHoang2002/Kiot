@@ -1,3 +1,4 @@
+import { AxiosError } from "axios";
 import { Item, sfAnd, sfEqual, sfLike } from "spring-filter-query-builder";
 
 import { Product, ProductsResponse } from "../types/product";
@@ -48,34 +49,55 @@ export const fetchDetailsProduct = async (
 };
 
 export const createProduct = async (formData: FormData): Promise<Product> => {
-  const response = await axiosClient.post<ApiResponse<Product>>(
-    "products", 
-    formData,
-    {
+  try {
+    const response = await axiosClient.post<ApiResponse<Product>>(
+      "products", 
+      formData,
+      {
       headers: {
         "Content-Type": "multipart/form-data",
       },
     }
   );
   return response.data.data;
+  } catch (error) {
+    if (error instanceof AxiosError) {
+      throw error
+    }
+    throw new Error("Lỗi khi tạo sản phẩm")
+  }
 };
 
 export const updateProduct = async (
   id: string | number,
   formData: FormData
 ): Promise<Product> => {
-  const response = await axiosClient.put<ApiResponse<Product>>(
-    `products/${id}`,
-    formData,
-    {
+  try {
+    const response = await axiosClient.put<ApiResponse<Product>>(
+      `products/${id}`,
+      formData,
+      {
       headers: {
         "Content-Type": "multipart/form-data",
       },
     }
   );
   return response.data.data;
+  } catch (error) {
+    if (error instanceof AxiosError) {
+      throw error
+    }
+    throw new Error("Lỗi khi cập nhật sản phẩm")
+  }
 };
 
 export const deleteProduct = async (id: number): Promise<void> => {
-  await axiosClient.delete(`products/${id}`);
+  try {
+    await axiosClient.delete(`products/${id}`);
+  } catch (error) {
+    if (error instanceof AxiosError) {
+      throw error
+    }
+    throw new Error("Lỗi khi xóa sản phẩm")
+  }
 };

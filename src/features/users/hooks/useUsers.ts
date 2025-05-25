@@ -8,8 +8,13 @@ import { getUsers, deleteUser, updateUser, createUser } from '../apis/users';
 import { User, UserFilterParams, CreateUserPayload } from '../types';
 import { useUrlFilters } from './useUrlFilters';
 
+import { useToast } from '@/hooks/use-toast';
+import { useApiErrorHandler } from '@/hooks/useApiErrorHandler';
+
 export const useUsers = (initialFilters: UserFilterParams = {}) => {
   const queryClient = useQueryClient();
+  const { handleError } = useApiErrorHandler()
+  const { toast } = useToast()
   const { 
     filters, 
     updateFilters, 
@@ -47,10 +52,14 @@ export const useUsers = (initialFilters: UserFilterParams = {}) => {
     mutationFn: (userData: FormData | CreateUserPayload) => createUser(userData),
     onSuccess: () => {
       // Invalidate the users query to refetch
+      toast({
+        title: 'Thành công',
+        description: 'Đã tạo người dùng mới'
+      });
       queryClient.invalidateQueries({ queryKey: ['users'] });
     },
     onError: (err) => {
-      console.error('Failed to create user:', err);
+      handleError(err)
     }
   });
 
@@ -62,7 +71,7 @@ export const useUsers = (initialFilters: UserFilterParams = {}) => {
       queryClient.invalidateQueries({ queryKey: ['users'] });
     },
     onError: (err) => {
-      console.error('Failed to delete user:', err);
+      handleError(err)
     }
   });
 
@@ -75,7 +84,7 @@ export const useUsers = (initialFilters: UserFilterParams = {}) => {
       queryClient.invalidateQueries({ queryKey: ['users'] });
     },
     onError: (err) => {
-      console.error('Failed to update user:', err);
+      handleError(err)
     }
   });
 

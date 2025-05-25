@@ -1,7 +1,6 @@
-import axios from 'axios';
+import axios, { AxiosError } from 'axios';
 
 import { refreshToken } from "@/features/auth/apis/refreshToken";
-import {toast} from "@/hooks/use-toast"
 const axiosClient = axios.create({
   baseURL: import.meta.env.VITE_BASE_URL as string,
   headers: {
@@ -52,13 +51,11 @@ axiosClient.interceptors.response.use(
       }
     }
     else{
-      toast({
-        title: "Lỗi",
-        description: "Đã xảy ra lỗi, vui lòng thử lại",
-        variant: "destructive",
-      });
+      if (error instanceof AxiosError) {
+        throw error;
+      }
+      throw new Error("Lỗi khi xử lý request")
     }
-    throw error;
   },
 );
 

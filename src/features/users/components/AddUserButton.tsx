@@ -20,6 +20,7 @@ import {
 import { FormField } from '@/components/ui/form-field';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
+import { useApiErrorHandler } from '@/hooks/useApiErrorHandler';
 
 const USERS_QUERY_KEY = ['users'] as const;
 
@@ -32,7 +33,7 @@ const AddUserButton = ({ onCreateUser }: AddUserButtonProps) => {
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
-
+  const { handleError } = useApiErrorHandler()
   const {
     register,
     handleSubmit,
@@ -78,13 +79,8 @@ const AddUserButton = ({ onCreateUser }: AddUserButtonProps) => {
       setOpen(false);
     },
     onError: (error) => {
-      console.error('Failed to create user:', error);
-      toast({
-        title: 'Lỗi',
-        description: 'Không thể tạo người dùng. Vui lòng thử lại.',
-        variant: 'destructive',
-      });
-    },
+        handleError(error)
+    }
   });
 
   const onSubmit: SubmitHandler<UserFormValues> = async (data) => {

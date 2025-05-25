@@ -8,14 +8,12 @@ import { useUsers } from '@/features/users/hooks';
 import { User } from '@/features/users/types';
 import { useToast } from '@/hooks/use-toast';
 import useAuthStore from '@/store/authStore';
-
 const UsersPage = () => {
   const [userToEdit, setUserToEdit] = useState<User | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [updatingUserId, setUpdatingUserId] = useState<number | null>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  
   const {
     users,
     isLoading,
@@ -94,20 +92,7 @@ const UsersPage = () => {
   };
 
   const handleCreateUser = async (formData: FormData) => {
-    try {
-      await createUser(formData);
-      toast({
-        title: 'Thành công',
-        description: 'Đã tạo người dùng mới'
-      });
-    } catch {
-      toast({
-        title: 'Lỗi',
-        description: 'Không thể tạo người dùng. Vui lòng thử lại.',
-        variant: 'destructive'
-      });
-      throw Error('Failed to create user');
-    }
+      await createUser(formData);  
   };
 
   return (

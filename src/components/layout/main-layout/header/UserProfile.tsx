@@ -13,7 +13,7 @@ import Image from '@/components/ui/image'
 import useAuthStore from '@/store/authStore'
 const UserProfile = () => {
   const { clearCurrentUser} = useAuthStore()
-  const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}').user;
+  const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
   const queryClient = useQueryClient()
   const navigate = useNavigate()
   

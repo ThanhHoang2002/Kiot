@@ -2,10 +2,11 @@ import { useMutation, useQuery } from "@tanstack/react-query"
 
 import { fetchDetailsProduct, deleteProduct, updateProduct, createProduct } from "../api/productsApi"
 
+import { useApiErrorHandler } from "@/hooks/useApiErrorHandler"
 import { queryClient } from "@/lib/query-client"
-
 export const useProduct = (id: number) => {
     // Query để lấy thông tin sản phẩm
+    const { handleError } = useApiErrorHandler()
     const get = useQuery({
         queryKey: ['products', id],
         queryFn: () => fetchDetailsProduct(id),
@@ -19,6 +20,9 @@ export const useProduct = (id: number) => {
             // Invalidate queries để cập nhật dữ liệu mới
             queryClient.invalidateQueries({ queryKey: ['products', id] })
             queryClient.invalidateQueries({ queryKey: ['products'] })
+        },
+        onError: (error) => {
+            handleError(error)
         }
     })
 
@@ -28,6 +32,9 @@ export const useProduct = (id: number) => {
         onSuccess: () => {
             // Invalidate queries để cập nhật danh sách sản phẩm
             queryClient.invalidateQueries({ queryKey: ['products'] })
+        },
+        onError: (error) => {
+            handleError(error)
         }
     })
 

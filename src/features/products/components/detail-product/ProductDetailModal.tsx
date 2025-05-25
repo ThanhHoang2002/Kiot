@@ -49,6 +49,7 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "@/hooks/use-toast";
+import { useApiErrorHandler } from "@/hooks/useApiErrorHandler";
 
 interface ProductDetailModalProps {
   productId?: number;
@@ -82,7 +83,7 @@ export function ProductDetailModal({
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [imageFile, setImageFile] = useState<File | null>(null);
-
+  const { handleError } = useApiErrorHandler()
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const form = useForm<ProductFormValues>({
@@ -213,12 +214,7 @@ export function ProductDetailModal({
             onClose();
           },
           onError: (error) => {
-            toast({
-              title: "Thêm sản phẩm thất bại",
-              description: "Đã xảy ra lỗi khi thêm sản phẩm, vui lòng thử lại",
-              variant: "destructive",
-            });
-            console.error("Failed to create product:", error);
+            handleError(error)
           }
         });
       } else if (productId) {
@@ -238,22 +234,12 @@ export function ProductDetailModal({
             onClose();
           },
           onError: (error) => {
-            toast({
-              title: "Cập nhật sản phẩm thất bại",
-              description: "Đã xảy ra lỗi khi cập nhật sản phẩm, vui lòng thử lại",
-              variant: "destructive",
-            });
-            console.error("Failed to update product:", error);
+            handleError(error)
           }
         });
       }
     } catch (error) {
-      toast({
-        title: "Lưu sản phẩm thất bại",
-        description: "Đã xảy ra lỗi khi lưu sản phẩm, vui lòng thử lại",
-        variant: "destructive",
-      });
-      console.error("Failed to save product:", error);
+      handleError(error)
     } finally {
       setIsSaving(false);
     }
@@ -456,7 +442,7 @@ export function ProductDetailModal({
                         </FormControl>
                         <SelectContent>
                           <SelectItem value="Còn hàng">Đang bán</SelectItem>
-                          <SelectItem value="Hết hàng">Ngừng bán</SelectItem>
+                          <SelectItem value="Hết hàng">Hết hàng</SelectItem>
                         </SelectContent>
                       </Select>
                       <FormMessage />

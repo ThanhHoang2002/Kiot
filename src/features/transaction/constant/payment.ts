@@ -1,4 +1,4 @@
-export const PAYMENT_TIME = 150
+export const PAYMENT_TIME = 600
 
 export const PAYMENT_CHECK_INTERVAL = 30000
 
